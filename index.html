@@ -1,0 +1,270 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>CSR Admin - Manage Requests</title>
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Roboto:wght@400;500;700&display=swap');
+        body { font-family: 'Roboto', sans-serif; background-color: #f4f7f6; margin: 0; padding: 20px; }
+        #loginOverlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: #002147; display: flex; justify-content: center; align-items: center; z-index: 1000; color: white; }
+        .login-box { background: white; padding: 40px; border-radius: 12px; text-align: center; color: #333; width: 90%; max-width: 400px; }
+        .login-box input { width: 100%; padding: 12px; margin: 20px 0; border: 1px solid #ccc; border-radius: 6px; box-sizing: border-box; }
+        .login-box button { background: #002147; color: white; border: none; padding: 12px; border-radius: 6px; cursor: pointer; width: 100%; font-weight: bold; }
+        
+        .admin-container { max-width: 1600px; width: 100%; margin: 0 auto; background: white; padding: 30px; border-radius: 12px; box-shadow: 0 4px 20px rgba(0,0,0,0.1); display: none; }
+        .header { border-bottom: 2px solid #002147; padding-bottom: 15px; margin-bottom: 15px; display: flex; justify-content: space-between; align-items: center; }
+        h1 { color: #002147; font-size: 24px; margin: 0; }
+        
+        /* Filter Styles */
+        .filter-bar {
+            background: #f8f9fa;
+            padding: 15px;
+            border-radius: 8px;
+            margin-bottom: 20px;
+            display: flex;
+            flex-wrap: wrap;
+            gap: 15px;
+            align-items: flex-end;
+            border: 1px solid #e9ecef;
+        }
+        .filter-group { display: flex; flex-direction: column; gap: 5px; }
+        .filter-group label { font-size: 12px; font-weight: bold; color: #002147; }
+        .filter-input { padding: 8px; border: 1px solid #ccc; border-radius: 4px; font-size: 13px; }
+
+        .btn-group { display: flex; gap: 10px; }
+        .refresh-btn { background-color: #002147; color: white; border: none; padding: 10px 20px; border-radius: 6px; cursor: pointer; font-weight: bold; }
+        .clear-btn { background-color: #6c757d; color: white; border: none; padding: 10px 20px; border-radius: 6px; cursor: pointer; font-weight: bold; }
+        
+        table { width: 100%; border-collapse: collapse; }
+        th, td { padding: 12px; text-align: left; border-bottom: 1px solid #eee; font-size: 13px; }
+        th { background-color: #f8f9fa; color: #002147; position: sticky; top: 0; }
+
+        .status-select { padding: 5px; border-radius: 4px; border: 1px solid #ccc; width: 120px; }
+        .admin-input { padding: 6px; border-radius: 4px; border: 1px solid #ccc; width: 150px; font-size: 12px; }
+        .save-btn { background: #002147; color: white; border: none; padding: 6px 12px; border-radius: 4px; cursor: pointer; font-size: 11px; }
+
+        .status-label { display: inline-block; padding: 4px 10px; border-radius: 20px; font-size: 11px; font-weight: bold; text-transform: uppercase; }
+        .st-pending { background: #fff3e0; color: #ef6c00; }
+        .st-approved { background: #e8f5e9; color: #2e7d32; }
+        .st-disapproved { background: #ffebee; color: #c62828; }
+        .st-processing { background: #e3f2fd; color: #1565c0; }
+        .st-readytodispatch { background: #f3e5f5; color: #7b1fa2; }
+        
+        .loading-overlay { text-align: center; padding: 50px; color: #666; }
+        .no-results { text-align: center; padding: 20px; color: #999; font-style: italic; }
+    </style>
+</head>
+<body>
+
+<div id="loginOverlay">
+    <div class="login-box">
+        <h2>CSR Access Control</h2>
+        <input type="password" id="passInput" placeholder="Enter Admin Password" onkeypress="if(event.key==='Enter')checkPassword()">
+        <button onclick="checkPassword()">Login</button>
+    </div>
+</div>
+
+<div class="admin-container" id="mainContainer">
+    <div class="header">
+        <h1>CSR ADMIN: Request Management</h1>
+        <div class="btn-group">
+            <button class="refresh-btn" onclick="fetchRequests()">🔄 Refresh Data</button>
+        </div>
+    </div>
+
+    <!-- Filter Bar -->
+    <div class="filter-bar">
+        <div class="filter-group">
+            <label>Department</label>
+            <select id="filterDept" class="filter-input" onchange="applyFilters()">
+                <option value="">All Departments</option>
+                <!-- Departments will be populated dynamically -->
+            </select>
+        </div>
+        <div class="filter-group">
+            <label>From Date</label>
+            <input type="date" id="filterDateFrom" class="filter-input" onchange="applyFilters()">
+        </div>
+        <div class="filter-group">
+            <label>To Date</label>
+            <input type="date" id="filterDateTo" class="filter-input" onchange="applyFilters()">
+        </div>
+        <div class="filter-group">
+            <button class="clear-btn" onclick="clearFilters()">Clear Filters</button>
+        </div>
+    </div>
+
+    <div style="overflow-x: auto;">
+        <table id="adminTable">
+            <thead>
+                <tr>
+                    <th>ID</th>
+                    <th>Date/Dept</th>
+                    <th>Requester</th>
+                    <th>Items</th>
+                    <th>Status</th>
+                    <th>Update Status</th>
+                    <th>Received By</th>
+                    <th>Admin Remarks</th>
+                    <th>Action</th>
+                </tr>
+            </thead>
+            <tbody id="adminBody"></tbody>
+        </table>
+        <div id="loader" class="loading-overlay">Loading...</div>
+        <div id="noDataMsg" class="no-results" style="display:none;">No requests match the selected filters.</div>
+    </div>
+</div>
+
+<script>
+    const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbzhQwVJTvLo_W4IcxPTdcCDojC92XjS4Y5wb1r_ldwO1jXu7LJ99QBMJ_Ncl4FBek239Q/exec"; 
+    const SECRET_KEY = "CSR2026APPRVD";
+    
+    let allRequests = []; // Global store for local filtering
+
+    function checkPassword() {
+        if (document.getElementById('passInput').value === SECRET_KEY) {
+            document.getElementById('loginOverlay').style.display = 'none';
+            document.getElementById('mainContainer').style.display = 'block';
+            fetchRequests();
+        } else {
+            Swal.fire('Error', 'Incorrect Password', 'error');
+        }
+    }
+
+    async function fetchRequests() {
+        document.getElementById('loader').style.display = 'block';
+        document.getElementById('adminBody').innerHTML = '';
+        document.getElementById('noDataMsg').style.display = 'none';
+        
+        try {
+            const res = await fetch(SCRIPT_URL + "?action=getRequests");
+            const data = await res.json();
+            allRequests = data.sort((a, b) => b.id - a.id);
+            
+            populateDeptFilter(allRequests);
+            renderTable(allRequests);
+            
+            document.getElementById('loader').style.display = 'none';
+        } catch (e) {
+            document.getElementById('loader').innerText = 'Error loading data.';
+        }
+    }
+
+    function populateDeptFilter(data) {
+        const deptSelect = document.getElementById('filterDept');
+        const currentVal = deptSelect.value;
+        const depts = [...new Set(data.map(r => r.dept))].sort();
+        
+        deptSelect.innerHTML = '<option value="">All Departments</option>';
+        depts.forEach(d => {
+            const opt = document.createElement('option');
+            opt.value = d;
+            opt.textContent = d;
+            deptSelect.appendChild(opt);
+        });
+        deptSelect.value = currentVal;
+    }
+
+    function applyFilters() {
+        const dept = document.getElementById('filterDept').value;
+        const fromDate = document.getElementById('filterDateFrom').value;
+        const toDate = document.getElementById('filterDateTo').value;
+
+        const filtered = allRequests.filter(req => {
+            const matchDept = !dept || req.dept === dept;
+            
+            // Handle date comparison (req.date is YYYY-MM-DD)
+            const reqDate = req.date; 
+            const matchFrom = !fromDate || reqDate >= fromDate;
+            const matchTo = !toDate || reqDate <= toDate;
+
+            return matchDept && matchFrom && matchTo;
+        });
+
+        renderTable(filtered);
+    }
+
+    function clearFilters() {
+        document.getElementById('filterDept').value = "";
+        document.getElementById('filterDateFrom').value = "";
+        document.getElementById('filterDateTo').value = "";
+        renderTable(allRequests);
+    }
+
+    function renderTable(data) {
+        const tbody = document.getElementById('adminBody');
+        tbody.innerHTML = '';
+        
+        if (data.length === 0) {
+            document.getElementById('noDataMsg').style.display = 'block';
+            return;
+        } else {
+            document.getElementById('noDataMsg').style.display = 'none';
+        }
+
+        data.forEach(req => {
+            const tr = document.createElement('tr');
+            const statusClass = "st-" + (req.status || 'pending').toLowerCase().replace(/\s/g, '');
+            
+            tr.innerHTML = `
+                <td><strong>#${req.id}</strong></td>
+                <td><b>${req.dept}</b><br><small>${req.date}</small></td>
+                <td>${req.reqBy}</td>
+                <td>${req.items.replace(/\|/g, '<br>')}</td>
+                <td><span class="status-label ${statusClass}">${req.status || 'Pending'}</span></td>
+                <td>
+                    <select class="status-select" id="stat-${req.id}">
+                        <option value="${req.status}" selected>${req.status}</option>
+                        <option value="Pending">Pending</option>
+                        <option value="Approved">Approved</option>
+                        <option value="Disapproved">Disapproved</option>
+                        <option value="Processing">Processing</option>
+                        <option value="Ready to Dispatch">Ready to Dispatch</option>
+                    </select>
+                </td>
+                <td>
+                    <input type="text" class="admin-input" id="rec-${req.id}" value="${req.recBy || ''}" placeholder="Name of Receiver">
+                </td>
+                <td>
+                    <input type="text" class="admin-input" id="rem-${req.id}" value="${req.remarks || ''}" placeholder="Add note...">
+                </td>
+                <td>
+                    <button class="save-btn" onclick="updateRow('${req.id}')">SAVE</button>
+                </td>
+            `;
+            tbody.appendChild(tr);
+        });
+    }
+
+    async function updateRow(id) {
+        Swal.fire({ title: 'Updating...', allowOutsideClick: false, didOpen: () => { Swal.showLoading(); }});
+        
+        const status = document.getElementById(`stat-${id}`).value;
+        const remarks = document.getElementById(`rem-${id}`).value;
+        const recBy = document.getElementById(`rec-${id}`).value;
+
+        try {
+            const res = await fetch(SCRIPT_URL, { 
+                method: "POST", 
+                body: JSON.stringify({ 
+                    action: "updateStatus", 
+                    id: id,
+                    status: status,
+                    remarks: remarks,
+                    recBy: recBy
+                }) 
+            });
+            if (res.ok) {
+                Swal.fire('Updated!', 'Row saved successfully.', 'success');
+                fetchRequests();
+            }
+        } catch (e) {
+            Swal.fire('Error', 'Update failed.', 'error');
+        }
+    }
+</script>
+</body>
+</html>
