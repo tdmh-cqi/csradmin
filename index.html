@@ -152,6 +152,15 @@
         .pulse { animation: pulse-animation 2s infinite; }
         @keyframes pulse-animation { 0% { opacity: 1; } 50% { opacity: 0.4; } 100% { opacity: 1; } }
 
+        /* Additional Assets styling */
+        .thumb-img {
+            width: 40px; height: 40px; border-radius: 4px; object-fit: cover;
+            cursor: pointer; border: 1px solid #ddd;
+        }
+        .sig-canvas-img {
+            width: 80px; height: auto; border-bottom: 1px solid #ccc;
+        }
+
         @media (max-width: 1024px) {
             .stats-grid { grid-template-columns: repeat(2, 1fr); }
             .sidebar { width: 70px; }
@@ -241,7 +250,7 @@
         <button onclick="resetFilters()" class="remark-input" style="cursor:pointer; background: #eee; width: auto; border: 1px solid #ccc;">Reset</button>
     </div>
 
-    <div class="table-container">
+    <div class="table-container" style="overflow-x: auto;">
         <table id="adminTable">
             <thead>
                 <tr>
@@ -249,8 +258,10 @@
                     <th>Requester Info</th>
                     <th>Items & Qty</th>
                     <th>Status</th>
+                    <th>Photos</th>
+                    <th>Notes/Sig</th>
                     <th>Set Status</th>
-                    <th>Remarks</th>
+                    <th>Admin Remarks</th>
                     <th>Action</th>
                 </tr>
             </thead>
@@ -296,6 +307,7 @@
             renderTable(allData);
             document.getElementById('loadingState').style.display = 'none';
         } catch (e) {
+            console.error(e);
             Swal.fire('Sync Error', 'Could not connect to Google Database', 'error');
         }
     }
@@ -320,6 +332,17 @@
         select.value = currentVal;
     }
 
+    function viewImage(url) {
+        if(!url) return;
+        Swal.fire({
+            imageUrl: url,
+            imageAlt: 'Requisition Photo',
+            width: 'auto',
+            showCloseButton: true,
+            showConfirmButton: false
+        });
+    }
+
     function renderTable(data) {
         const tbody = document.getElementById('tableBody');
         tbody.innerHTML = '';
@@ -329,6 +352,10 @@
             const status = row.status || 'Pending';
             const sClass = "st-" + status.toLowerCase().replace(/\s/g, '');
             const pClass = row.priority === 'Urgent' ? 'p-urgent' : 'p-regular';
+
+            // Handle multiple images if they exist (assuming comma or space separated)
+            const photoHtml = row.photo ? `<img src="${row.photo}" class="thumb-img" onclick="viewImage('${row.photo}')">` : '<span style="color:#ccc">N/A</span>';
+            const signatureHtml = row.signature ? `<img src="${row.signature}" class="sig-canvas-img">` : '<span style="color:#ccc">No Sig</span>';
 
             tr.innerHTML = `
                 <td><strong>#${row.id}</strong></td>
@@ -344,6 +371,13 @@
                 <td>
                     <span class="priority-indicator ${pClass}"></span>
                     <span class="status-badge ${sClass}">${status}</span>
+                </td>
+                <td>${photoHtml}</td>
+                <td>
+                    <div style="font-size:0.7rem; color:#444; max-width:150px; overflow-wrap: break-word;">
+                        ${row.additionalNotes || '—'}
+                    </div>
+                    <div style="margin-top:5px;">${signatureHtml}</div>
                 </td>
                 <td>
                     <select class="action-select" id="act-${row.id}">
