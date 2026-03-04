@@ -59,7 +59,6 @@
             left: 0; 
             width: 100%; 
             height: 100%; 
-            /* Beautiful hospital staff/patients background from Unsplash for the login screen */
             background: linear-gradient(135deg, rgba(0, 33, 71, 0.85) 0%, rgba(0, 18, 41, 0.95) 100%), 
                         url('https://images.unsplash.com/photo-1551076805-e1869033e561?auto=format&fit=crop&q=80&w=2000') no-repeat center center;
             background-size: cover;
@@ -88,16 +87,14 @@
         }
         
         .login-logo-container {
-            background: white;
-            padding: 15px;
-            border-radius: 12px;
-            margin-bottom: 20px;
+            /* Removed white background and box-shadow to blend seamlessly */
+            padding: 10px;
+            margin-bottom: 15px;
             display: inline-block;
-            box-shadow: 0 12px 24px rgba(0,33,71,0.15);
         }
 
         .login-logo {
-            max-width: 220px;
+            max-width: 240px; /* Slightly larger since background is gone */
             height: auto;
             transition: transform 0.3s ease;
         }
@@ -195,6 +192,7 @@
             flex-direction: column;
             position: fixed;
             height: 100vh;
+            z-index: 100;
         }
         
         .sidebar-logo { 
@@ -235,6 +233,7 @@
             margin-left: var(--sidebar-width);
             flex: 1;
             padding: 30px;
+            width: calc(100% - var(--sidebar-width));
         }
 
         /* Dashboard Header */
@@ -243,6 +242,8 @@
             justify-content: space-between;
             align-items: center;
             margin-bottom: 30px;
+            flex-wrap: wrap;
+            gap: 15px;
         }
         
         .stats-grid {
@@ -291,6 +292,8 @@
             display: flex; 
             flex-direction: column; 
             gap: 5px; 
+            flex: 1;
+            min-width: 150px;
         }
         
         .filter-group label { 
@@ -304,6 +307,7 @@
             border: 1px solid #ddd; 
             border-radius: 6px; 
             font-size: 0.85rem;
+            width: 100%;
         }
 
         /* Table Design */
@@ -311,12 +315,13 @@
             background: white; 
             border-radius: 12px;
             box-shadow: 0 2px 10px rgba(0,0,0,0.05);
-            overflow: hidden;
+            overflow-x: auto;
         }
         
         table { 
             width: 100%; 
             border-collapse: collapse; 
+            min-width: 900px; /* Ensure table doesn't squish too much on mobile */
         }
         
         th { 
@@ -327,6 +332,7 @@
             text-align: left; 
             font-size: 0.85rem;
             border-bottom: 2px solid #eee;
+            white-space: nowrap;
         }
         
         td { 
@@ -361,6 +367,8 @@
             font-weight: 600; 
             text-transform: uppercase; 
             display: inline-block;
+            text-align: center;
+            min-width: 100px;
         }
         
         .st-received { background: #fff3e0; color: var(--color-received); border: 1px solid var(--color-received); }
@@ -369,18 +377,20 @@
         .st-disapproved { background: #ffebee; color: var(--color-disapproved); border: 1px solid var(--color-disapproved); }
 
         .action-select { 
-            padding: 6px; 
-            border-radius: 4px; 
+            padding: 8px; 
+            border-radius: 6px; 
             border: 1px solid #ddd; 
-            font-size: 0.8rem; 
-            width: 130px; 
+            font-size: 0.85rem; 
+            width: 140px; 
+            background-color: #fff;
+            cursor: pointer;
         }
         
         .remark-input { 
-            padding: 8px; 
-            border-radius: 4px; 
+            padding: 10px; 
+            border-radius: 6px; 
             border: 1px solid #ddd; 
-            font-size: 0.8rem; 
+            font-size: 0.85rem; 
             width: 100%; 
             box-sizing: border-box; 
         }
@@ -389,15 +399,18 @@
             background: var(--primary-navy); 
             color: white; 
             border: none; 
-            padding: 8px 12px; 
-            border-radius: 4px; 
+            padding: 10px 15px; 
+            border-radius: 6px; 
             cursor: pointer; 
             display: flex; 
             align-items: center; 
             gap: 8px; 
             justify-content: center; 
             flex: 1; 
+            font-weight: 500;
+            transition: opacity 0.2s;
         }
+        .save-btn:hover { opacity: 0.9; }
 
         /* Image Display Styles */
         .thumb-img {
@@ -475,6 +488,7 @@
             100% { opacity: 1; } 
         }
 
+        /* Responsive Adjustments */
         @media (max-width: 1024px) {
             .stats-grid { 
                 grid-template-columns: repeat(2, 1fr); 
@@ -486,7 +500,22 @@
                 display: none; 
             }
             .main-content { 
-                margin-left: 70px; 
+                margin-left: 70px;
+                width: calc(100% - 70px);
+            }
+        }
+
+        @media (max-width: 768px) {
+            .stats-grid { 
+                grid-template-columns: 1fr; 
+            }
+            .filters-section {
+                flex-direction: column;
+                align-items: stretch;
+            }
+            .page-header {
+                flex-direction: column;
+                align-items: flex-start;
             }
         }
 
@@ -504,7 +533,8 @@
             }
             .main-content { 
                 margin-left: 0 !important; 
-                padding: 0 !important; 
+                padding: 0 !important;
+                width: 100% !important;
             }
             .page-header button, .filters-section, #loginOverlay { 
                 display: none !important; 
@@ -512,20 +542,15 @@
             .table-container { 
                 box-shadow: none; 
                 border: 1px solid #ddd; 
+                overflow: visible; /* Ensure all rows print */
             }
+            /* Hide the Action Column entirely when printing */
             table th:last-child, table td:last-child { 
                 display: none !important; 
             }
             .stat-card { 
                 border: 1px solid #ddd; 
                 break-inside: avoid; 
-            }
-            .remark-input, .action-select { 
-                border: none; 
-                background: transparent; 
-                padding: 0; 
-                appearance: none; 
-                -webkit-appearance: none; 
             }
         }
     </style>
@@ -569,12 +594,12 @@
             <h1 style="margin:0; font-size: 1.5rem; color: var(--primary-navy);">Requisition Overview</h1>
             <div id="syncIndicator"><i class="fas fa-circle pulse" style="color: #2ecc71;"></i> Synced with Live Database</div>
         </div>
-        <div style="display: flex; gap: 10px;">
+        <div style="display: flex; gap: 10px; flex-wrap: wrap;">
             <button onclick="window.print()" class="save-btn" style="background: #2e7d32; color: white;">
                 <i class="fas fa-print"></i> Print Report
             </button>
             <button onclick="fetchData()" class="save-btn" style="background: white; color: var(--primary-navy); border: 1px solid #ddd;">
-                <i class="fas fa-sync"></i> Force Refresh
+                <i class="fas fa-sync"></i> Refresh Site
             </button>
         </div>
     </div>
@@ -659,10 +684,10 @@
                 <option value="Regular">Regular</option>
             </select>
         </div>
-        <button onclick="resetFilters()" class="remark-input" style="cursor:pointer; background: #eee; width: auto; border: 1px solid #ccc;">Reset Filters</button>
+        <button onclick="resetFilters()" class="remark-input" style="cursor:pointer; background: #eee; width: auto; border: 1px solid #ccc; height: 38px;">Reset Filters</button>
     </div>
 
-    <div class="table-container" style="overflow-x: auto;">
+    <div class="table-container">
         <table id="adminTable">
             <thead>
                 <tr>
@@ -672,7 +697,7 @@
                     <th>Photo</th>
                     <th>Notes & Signatures</th>
                     <th>Status</th>
-                    <th style="min-width: 200px;">Admin Action</th>
+                    <th style="min-width: 220px;">Admin Action</th>
                 </tr>
             </thead>
             <tbody id="tableBody">
@@ -688,25 +713,45 @@
 <script>
     // ** IMPORTANT: REPLACE THIS URL WITH YOUR NEW DEPLOYMENT URL **
     const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbzhQwVJTvLo_W4IcxPTdcCDojC92XjS4Y5wb1r_ldwO1jXu7LJ99QBMJ_Ncl4FBek239Q/exec";
-    const PASSKEY = "CSR2026APPRVD";
+    
     let allData = [];
 
-    function login() {
-        const pass = document.getElementById('adminPass').value;
-        if (pass === PASSKEY) {
-            document.getElementById('loginOverlay').style.opacity = '0';
-            setTimeout(() => {
-                document.getElementById('loginOverlay').style.display = 'none';
-                document.getElementById('dashboard').style.display = 'block';
-                fetchData();
-            }, 500);
-        } else {
-            Swal.fire('Access Denied', 'Incorrect password', 'error');
+    async function login() {
+        const passInput = document.getElementById('adminPass').value;
+        if (!passInput) {
+            Swal.fire('Required', 'Please enter a password', 'warning');
+            return;
+        }
+
+        Swal.fire({ title: 'Authenticating...', allowOutsideClick: false, didOpen: () => Swal.showLoading() });
+
+        try {
+            // Verify password against the backend
+            const res = await fetch(`${SCRIPT_URL}?action=verifyPassword&pass=${encodeURIComponent(passInput)}`);
+            const data = await res.json();
+
+            if (data.success) {
+                Swal.close();
+                document.getElementById('loginOverlay').style.opacity = '0';
+                setTimeout(() => {
+                    document.getElementById('loginOverlay').style.display = 'none';
+                    document.getElementById('dashboard').style.display = 'block';
+                    fetchData();
+                }, 500);
+            } else {
+                Swal.fire('Access Denied', 'Incorrect password', 'error');
+            }
+        } catch (e) {
+            console.error("Login error:", e);
+            Swal.fire('Error', 'Could not connect to server to verify password.', 'error');
         }
     }
 
     async function fetchData() {
         document.getElementById('loadingState').style.display = 'block';
+        const tbody = document.getElementById('tableBody');
+        tbody.innerHTML = ''; // Clear existing table while loading
+        
         try {
             const res = await fetch(`${SCRIPT_URL}?action=getRequests`);
             allData = await res.json();
@@ -768,6 +813,11 @@
         const tbody = document.getElementById('tableBody');
         tbody.innerHTML = '';
         
+        if (data.length === 0) {
+            tbody.innerHTML = '<tr><td colspan="7" style="text-align: center; padding: 20px;">No requests found matching criteria.</td></tr>';
+            return;
+        }
+
         data.forEach(row => {
             const tr = document.createElement('tr');
             
@@ -781,12 +831,34 @@
             const itemPhoto = getKeyValue(row, ['itemphoto', 'photo', 'image']) || "";
             const sigHod = getKeyValue(row, ['sighod', 'hodsignature', 'signaturehod', 'headsignature', 'signature1']) || "";
             const sigAdmin = getKeyValue(row, ['sigadmin', 'adminsignature', 'signatureadmin', 'signature2']) || "";
-            const notes = row.additionalNotes || row.notes || "No notes.";
+            const notes = row.additionalNotes || row.notes || "No notes provided.";
+
+            // Action section logic
+            let actionHtml = `
+                <select class="action-select" id="act-${row.id}" style="margin-bottom: 10px;" onchange="handleStatusChange(this, ${row.id})">
+                    <option value="Received" ${status === 'Received' ? 'selected' : ''}>Received</option>
+                    <option value="For Release" ${status === 'For Release' ? 'selected' : ''}>For Release</option>
+                    <option value="Completed" ${status === 'Completed' ? 'selected' : ''}>Completed</option>
+                    <option value="Disapproved" ${status === 'Disapproved' ? 'selected' : ''}>Disapproved</option>
+                </select>
+                <div id="notes-container-${row.id}" style="display: flex; flex-direction: column; gap: 8px;">
+                    <input type="text" class="remark-input" id="rem-${row.id}" value="${row.remarks || ''}" placeholder="Optional notes/reason...">
+                    <div style="display: flex; gap: 5px;">
+                        <button class="save-btn" onclick="updateRow(${row.id}, false)" title="Save changes without emailing additional notes">
+                            <i class="fas fa-save"></i> Save
+                        </button>
+                        <button class="save-btn" style="background: #0288d1;" onclick="updateRow(${row.id}, true)" title="Save & Send Note to Requestor">
+                            <i class="fas fa-paper-plane"></i> Send Note
+                        </button>
+                    </div>
+                </div>
+            `;
 
             tr.innerHTML = `
                 <td>
                     <strong>#${row.id}</strong><br>
-                    <span style="font-size: 10px; color: #888;">${row.date || ''}</span>
+                    <span style="font-size: 10px; color: #888;">${row.date || ''}</span><br>
+                    <span style="font-size: 10px; color: #888;">${row.time || ''}</span>
                 </td>
                 <td>
                     <div style="font-weight:600">${row.dept || 'N/A'}</div>
@@ -801,7 +873,7 @@
                     ${itemPhoto ? `<img src="${itemPhoto}" class="thumb-img" onclick="viewFullImage('${itemPhoto}')">` : '<div class="no-sig-box">NO PHOTO</div>'}
                 </td>
                 <td>
-                    <div class="notes-text">${notes}</div>
+                    <div class="notes-text">"${notes}"</div>
                     <div style="display:flex; flex-wrap: wrap; gap:10px; margin-top:8px; align-items: flex-end;">
                         <div>
                             ${sigHod ? `<img src="${sigHod}" class="sig-preview" onclick="viewFullImage('${sigHod}')">` : '<div class="no-sig-box">MISSING<br>HOD SIG</div>'}
@@ -813,39 +885,48 @@
                         </div>
                     </div>
                 </td>
-                <td>
-                    <span class="priority-indicator ${pClass}"></span>
-                    <span id="badge-${row.id}" class="status-badge ${sClass}">${status}</span>
-                    <select class="action-select" id="act-${row.id}" style="display:block; margin-top:8px;" onchange="updateBadge(this, ${row.id})">
-                        <option value="Received" ${status === 'Received' ? 'selected' : ''}>Received</option>
-                        <option value="For Release" ${status === 'For Release' ? 'selected' : ''}>For Release</option>
-                        <option value="Completed" ${status === 'Completed' ? 'selected' : ''}>Completed</option>
-                        <option value="Disapproved" ${status === 'Disapproved' ? 'selected' : ''}>Disapproved</option>
-                    </select>
+                <td style="text-align: center;">
+                    <span class="priority-indicator ${pClass}"></span><br>
+                    <span id="badge-${row.id}" class="status-badge ${sClass}" style="margin-top: 5px;">${status}</span>
                 </td>
                 <td>
-                    <div style="display: flex; flex-direction: column; gap: 8px;">
-                        <input type="text" class="remark-input" id="rem-${row.id}" value="${row.remarks || ''}" placeholder="Add Notes/Reason...">
-                        <div style="display: flex; gap: 5px;">
-                            <button class="save-btn" onclick="updateRow(${row.id}, false)" title="Save Changes">
-                                <i class="fas fa-save"></i> Save
-                            </button>
-                            <button class="save-btn" style="background: #0288d1;" onclick="updateRow(${row.id}, true)" title="Save & Send Email to Requestor">
-                                <i class="fas fa-paper-plane"></i> Send
-                            </button>
-                        </div>
-                    </div>
+                    ${actionHtml}
                 </td>
             `;
             tbody.appendChild(tr);
         });
     }
 
-    async function updateRow(id, notifyUser) {
+    // Handles the dropdown change to update badge visually and trigger auto-save if NOT disapproved
+    function handleStatusChange(selectElement, id) {
+        updateBadge(selectElement, id);
+        
+        // Automatically save and send standard notification when status changes
+        // UNLESS they chose "Disapproved", in which case they might want to type a note first.
+        if (selectElement.value !== "Disapproved") {
+            // Give a slight delay so they see the badge change before the loading overlay
+            setTimeout(() => {
+                // False means "don't send a custom note email", but the backend WILL send the automatic status update email.
+                updateRow(id, false); 
+            }, 300);
+        }
+    }
+
+    async function updateRow(id, sendCustomNote) {
         const newStatus = document.getElementById(`act-${id}`).value;
         const newRemark = document.getElementById(`rem-${id}`).value;
         
-        let loadText = notifyUser ? 'Saving & Sending Email...' : 'Saving...';
+        // Validation: If sending custom note, ensure note is filled
+        if (sendCustomNote && !newRemark.trim()) {
+             Swal.fire('Note Required', 'Please type a reason/note before hitting Send.', 'warning');
+             return;
+        }
+
+        let loadText = 'Saving Status & Notifying...';
+        if (sendCustomNote) {
+             loadText = 'Sending Custom Note...';
+        }
+        
         Swal.fire({ 
             title: loadText, 
             allowOutsideClick: false, 
@@ -861,21 +942,23 @@
                     id: id,
                     status: newStatus,
                     remarks: newRemark,
-                    notify: notifyUser
+                    sendCustomNote: sendCustomNote // true if clicked "Send Note"
                 })
             });
             
             Swal.fire({ 
                 icon: 'success', 
-                title: notifyUser ? 'Saved & Emailed!' : 'Record Saved!', 
+                title: 'Done!', 
                 timer: 1500, 
                 showConfirmButton: false 
             });
             
-            setTimeout(fetchData, 1200);
+            // Background refresh to keep data perfectly in sync
+            setTimeout(fetchData, 1500);
             
         } catch (e) {
-            Swal.fire('Update Failed', 'Connection error', 'error');
+            console.error("Update error:", e);
+            Swal.fire('Update Failed', 'Connection error. Please try again.', 'error');
         }
     }
 
