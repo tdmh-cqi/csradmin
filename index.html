@@ -408,7 +408,7 @@
             width: 100px; 
             height: 50px; 
             border: 1px solid #eee;
-            background: transparent; 
+            background: #ffffff; 
             object-fit: contain; 
             cursor: pointer;
             display: block; 
@@ -602,8 +602,6 @@
         try {
             const res = await fetch(`${SCRIPT_URL}?action=getRequests`);
             allData = await res.json();
-            
-            console.log("RAW DATA FROM SHEET:", allData);
             
             allData.sort((a, b) => b.id - a.id);
             updateStats(allData);
