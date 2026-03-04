@@ -21,6 +21,11 @@
             --info: #1565c0;
             --purple: #6a1b9a;
             --bg-gray: #f8f9fa;
+            --status-pending: #ef6c00;
+            --status-approved: #2e7d32;
+            --status-disapproved: #c62828;
+            --status-releasing: #1565c0;
+            --status-completed: #6a1b9a;
         }
 
         * { box-sizing: border-box; }
@@ -138,7 +143,7 @@
         .st-pending { background: #fff3e0; color: var(--status-pending); }
         .st-approved { background: #e8f5e9; color: var(--status-approved); }
         .st-disapproved { background: #ffebee; color: var(--status-disapproved); }
-        .st-released { background: #e3f2fd; color: var(--status-released); }
+        .st-forreleasing { background: #e3f2fd; color: var(--status-releasing); }
         .st-completed { background: #f3e5f5; color: var(--status-completed); }
 
         .action-select { padding: 6px; border-radius: 4px; border: 1px solid #ddd; font-size: 0.8rem; width: 130px; }
@@ -150,21 +155,32 @@
 
         /* Image Display Styles */
         .thumb-img {
-            width: 60px; height: 60px; border-radius: 6px; object-fit: cover;
+            width: 70px; height: 70px; border-radius: 6px; object-fit: cover;
             cursor: pointer; border: 1px solid #eee; background: #fff;
             transition: transform 0.2s;
+            display: block;
         }
         .thumb-img:hover { transform: scale(1.1); }
         
         .sig-preview {
-            width: 100px; height: 40px; border: 1px solid #eee;
+            width: 100px; height: 50px; border: 1px solid #eee;
             background: #fff; object-fit: contain; cursor: pointer;
             display: block; margin-top: 5px;
+            transition: transform 0.2s;
+        }
+        .sig-preview:hover { transform: scale(1.05); }
+
+        .no-sig-box {
+            width: 100px; height: 50px; border: 1px dashed #ccc;
+            background: #fafafa; display: flex; align-items: center;
+            justify-content: center; color: #aaa; font-size: 9px; font-weight: bold;
+            text-align: center; border-radius: 4px;
         }
 
         .notes-text {
             font-size: 0.75rem; color: #555; font-style: italic;
-            max-width: 150px; white-space: normal; line-height: 1.3;
+            max-width: 200px; white-space: normal; line-height: 1.3;
+            margin-bottom: 10px;
         }
 
         #syncIndicator { font-size: 0.75rem; color: #666; display: flex; align-items: center; gap: 5px; }
@@ -225,8 +241,8 @@
             <div id="statPending">0</div>
         </div>
         <div class="stat-card" style="border-left-color: var(--info);">
-            <h4>For Release</h4>
-            <div id="statFor Released">0</div>
+            <h4>For Releasing</h4>
+            <div id="statForReleasing">0</div>
         </div>
         <div class="stat-card" style="border-left-color: var(--success);">
             <h4>Completed</h4>
@@ -242,14 +258,6 @@
             </select>
         </div>
         <div class="filter-group">
-            <label>Start Date</label>
-            <input type="date" id="filterStart" onchange="applyFilters()">
-        </div>
-        <div class="filter-group">
-            <label>End Date</label>
-            <input type="date" id="filterEnd" onchange="applyFilters()">
-        </div>
-        <div class="filter-group">
             <label>Priority</label>
             <select id="filterPriority" onchange="applyFilters()">
                 <option value="">All</option>
@@ -257,7 +265,7 @@
                 <option value="Regular">Regular</option>
             </select>
         </div>
-        <button onclick="resetFilters()" class="remark-input" style="cursor:pointer; background: #eee; width: auto; border: 1px solid #ccc;">Reset</button>
+        <button onclick="resetFilters()" class="remark-input" style="cursor:pointer; background: #eee; width: auto; border: 1px solid #ccc;">Reset Filters</button>
     </div>
 
     <div class="table-container" style="overflow-x: auto;">
@@ -266,7 +274,7 @@
                 <tr>
                     <th>ID</th>
                     <th>Requester</th>
-                    <th>Items & Qty</th>
+                    <th>Items</th>
                     <th>Photo</th>
                     <th>Notes & Signatures</th>
                     <th>Status</th>
@@ -279,7 +287,7 @@
             </tbody>
         </table>
         <div id="loadingState" style="text-align:center; padding: 40px; color: #666;">
-            <i class="fas fa-spinner fa-spin fa-2x"></i><br><br>Loading Requests...
+            <i class="fas fa-spinner fa-spin fa-2x"></i><br><br>Fetching Live Data...
         </div>
     </div>
 </main>
@@ -305,6 +313,9 @@
         try {
             const res = await fetch(`${SCRIPT_URL}?action=getRequests`);
             allData = await res.json();
+            
+            console.log("RAW DATA FROM SHEET:", allData);
+            
             allData.sort((a, b) => b.id - a.id);
             updateStats(allData);
             populateDeptFilter(allData);
@@ -320,26 +331,48 @@
     function updateStats(data) {
         document.getElementById('statTotal').innerText = data.length;
         document.getElementById('statPending').innerText = data.filter(r => (r.status || 'Pending') === 'Pending').length;
-        document.getElementById('statReleased').innerText = data.filter(r => r.status === 'Released').length;
+        document.getElementById('statForReleasing').innerText = data.filter(r => r.status === 'For Releasing' || r.status === 'For Release' || r.status === 'Released').length;
         document.getElementById('statCompleted').innerText = data.filter(r => r.status === 'Completed').length;
     }
 
     function populateDeptFilter(data) {
         const depts = [...new Set(data.map(item => item.dept))].sort();
         const select = document.getElementById('filterDept');
+        const currentVal = select.value;
         select.innerHTML = '<option value="">All Departments</option>' + 
             depts.map(d => `<option value="${d}">${d}</option>`).join('');
+        select.value = currentVal;
     }
 
     function viewFullImage(src) {
-        if(!src) return;
+        if(!src || src.length < 20) return;
         Swal.fire({
             imageUrl: src,
-            imageAlt: 'Document Image',
+            imageAlt: 'Visual Preview',
             width: 'auto',
             showCloseButton: true,
-            showConfirmButton: false
+            showConfirmButton: false,
+            backdrop: `rgba(0,0,10,0.85)`
         });
+    }
+
+    /** * Robust Key Matcher 
+     * Handles single quotes, leading spaces, and multiple naming conventions
+     */
+    function getKeyValue(obj, patterns) {
+        const keys = Object.keys(obj);
+        for (const pattern of patterns) {
+            const foundKey = keys.find(k => k.toLowerCase().replace(/['\s_]/g, '').includes(pattern.toLowerCase()));
+            if (foundKey) {
+                let val = obj[foundKey];
+                if (val && typeof val === 'string') {
+                    // Clean Excel/Sheet artifacts like leading single quotes
+                    val = val.trim().replace(/^'/, '');
+                    if (val.includes('data:image')) return val;
+                }
+            }
+        }
+        return null;
     }
 
     function renderTable(data) {
@@ -348,50 +381,60 @@
         
         data.forEach(row => {
             const tr = document.createElement('tr');
-            const status = row.status || 'Pending';
+            
+            let status = row.status || 'Pending';
+            if (status === 'For Release' || status === 'Released') status = 'For Releasing';
+            
             const sClass = "st-" + status.toLowerCase().replace(/\s/g, '');
             const pClass = row.priority === 'Urgent' ? 'p-urgent' : 'p-regular';
 
-            // Mapping images and notes
-            const photoSrc = row.photo || "";
-            const sigHodSrc = row.sigHod || "";
-            const sigAdminSrc = row.sigAdmin || "";
-            const notes = row.additionalNotes || "No notes.";
+            // DYNAMIC KEY DETECTION
+            const itemPhoto = getKeyValue(row, ['itemphoto', 'photo', 'image']) || "";
+            const sigHod = getKeyValue(row, ['sighod', 'hodsignature', 'signaturehod', 'headsignature', 'signature1']) || "";
+            const sigAdmin = getKeyValue(row, ['sigadmin', 'adminsignature', 'signatureadmin', 'signature2']) || "";
+            const notes = row.additionalNotes || row.notes || "No notes.";
 
             tr.innerHTML = `
                 <td><strong>#${row.id}</strong></td>
                 <td>
-                    <div style="font-weight:600">${row.dept}</div>
-                    <div style="font-size:0.75rem; color:#666">${row.reqBy}</div>
+                    <div style="font-weight:600">${row.dept || 'N/A'}</div>
+                    <div style="font-size:0.75rem; color:#666">${row.reqBy || 'Unknown'}</div>
                 </td>
                 <td>
                     <div style="font-size:0.8rem; line-height:1.4">
-                        ${row.items.split('|').map(i => `• ${i.trim()}`).join('<br>')}
+                        ${row.items ? row.items.split('|').map(i => `• ${i.trim()}`).join('<br>') : 'No items listed'}
                     </div>
                 </td>
                 <td>
-                    ${photoSrc ? `<img src="${photoSrc}" class="thumb-img" onclick="viewFullImage('${photoSrc}')">` : '<span style="color:#ccc">None</span>'}
+                    ${itemPhoto ? `<img src="${itemPhoto}" class="thumb-img" onclick="viewFullImage('${itemPhoto}')">` : '<div class="no-sig-box">NO PHOTO</div>'}
                 </td>
                 <td>
                     <div class="notes-text">${notes}</div>
-                    <div style="display:flex; gap:5px; margin-top:5px;">
-                        ${sigHodSrc ? `<img src="${sigHodSrc}" class="sig-preview" onclick="viewFullImage('${sigHodSrc}')" title="HOD Sig">` : ''}
-                        ${sigAdminSrc ? `<img src="${sigAdminSrc}" class="sig-preview" onclick="viewFullImage('${sigAdminSrc}')" title="Admin Sig">` : ''}
+                    <div style="display:flex; flex-wrap: wrap; gap:10px; margin-top:8px; align-items: flex-end;">
+                        <div>
+                            ${sigHod ? `<img src="${sigHod}" class="sig-preview" onclick="viewFullImage('${sigHod}')">` : '<div class="no-sig-box">MISSING<br>HOD SIG</div>'}
+                            <span style="font-size:9px; color:#777; font-weight:bold; display:block; text-align:center; margin-top:3px;">HOD</span>
+                        </div>
+                        
+                        <div>
+                            ${sigAdmin ? `<img src="${sigAdmin}" class="sig-preview" onclick="viewFullImage('${sigAdmin}')">` : '<div class="no-sig-box" style="border-style:solid; border-width:1px;">PENDING<br>ADMIN SIG</div>'}
+                            <span style="font-size:9px; color:#777; font-weight:bold; display:block; text-align:center; margin-top:3px;">ADMIN</span>
+                        </div>
                     </div>
                 </td>
                 <td>
                     <span class="priority-indicator ${pClass}"></span>
                     <span class="status-badge ${sClass}">${status}</span>
-                    <select class="action-select" id="act-${row.id}" style="display:block; margin-top:5px;">
+                    <select class="action-select" id="act-${row.id}" style="display:block; margin-top:8px;">
                         <option value="Pending" ${status === 'Pending' ? 'selected' : ''}>Pending</option>
                         <option value="Approved" ${status === 'Approved' ? 'selected' : ''}>Approved</option>
                         <option value="Disapproved" ${status === 'Disapproved' ? 'selected' : ''}>Disapproved</option>
-                        <option value="Released" ${status === 'For Release' ? 'selected' : ''}>For Release</option>
+                        <option value="For Releasing" ${status === 'For Releasing' ? 'selected' : ''}>For Releasing</option>
                         <option value="Completed" ${status === 'Completed' ? 'selected' : ''}>Completed</option>
                     </select>
                 </td>
                 <td>
-                    <input type="text" class="remark-input" id="rem-${row.id}" value="${row.remarks || ''}" placeholder="Note...">
+                    <input type="text" class="remark-input" id="rem-${row.id}" value="${row.remarks || ''}" placeholder="Add remark...">
                 </td>
                 <td>
                     <button class="save-btn" onclick="updateRow(${row.id})">
@@ -407,7 +450,7 @@
         const newStatus = document.getElementById(`act-${id}`).value;
         const newRemark = document.getElementById(`rem-${id}`).value;
         
-        Swal.fire({ title: 'Saving...', allowOutsideClick: false, didOpen: () => Swal.showLoading() });
+        Swal.fire({ title: 'Updating...', allowOutsideClick: false, didOpen: () => Swal.showLoading() });
         
         try {
             await fetch(SCRIPT_URL, {
@@ -421,35 +464,31 @@
                 })
             });
             
-            Swal.fire({ icon: 'success', title: 'Saved!', timer: 1000, showConfirmButton: false });
-            fetchData();
+            Swal.fire({ icon: 'success', title: 'Record Updated', timer: 1000, showConfirmButton: false });
+            setTimeout(fetchData, 800);
         } catch (e) {
-            Swal.fire('Error', 'Save failed', 'error');
+            Swal.fire('Update Failed', 'Connection error', 'error');
         }
     }
 
     function applyFilters() {
         const dept = document.getElementById('filterDept').value;
-        const start = document.getElementById('filterStart').value;
-        const end = document.getElementById('filterEnd').value;
         const priority = document.getElementById('filterPriority').value;
 
         const filtered = allData.filter(item => {
             const matchDept = !dept || item.dept === dept;
-            const matchStart = !start || item.date >= start;
-            const matchEnd = !end || item.date <= end;
             const matchPri = !priority || item.priority === priority;
-            return matchDept && matchStart && matchEnd && matchPri;
+            return matchDept && matchPri;
         });
 
         renderTable(filtered);
     }
 
     function resetFilters() {
-        document.querySelectorAll('.filters-section input, .filters-section select').forEach(i => i.value = "");
+        document.getElementById('filterDept').value = "";
+        document.getElementById('filterPriority').value = "";
         renderTable(allData);
     }
 </script>
 </body>
 </html>
-
