@@ -293,6 +293,7 @@
 </main>
 
 <script>
+    // ** IMPORTANT: REPLACE THIS URL WITH YOUR NEW DEPLOYMENT URL **
     const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbzhQwVJTvLo_W4IcxPTdcCDojC92XjS4Y5wb1r_ldwO1jXu7LJ99QBMJ_Ncl4FBek239Q/exec";
     const PASSKEY = "CSR2026APPRVD";
     let allData = [];
@@ -356,9 +357,6 @@
         });
     }
 
-    /** * Robust Key Matcher 
-     * Handles single quotes, leading spaces, and multiple naming conventions
-     */
     function getKeyValue(obj, patterns) {
         const keys = Object.keys(obj);
         for (const pattern of patterns) {
@@ -366,7 +364,6 @@
             if (foundKey) {
                 let val = obj[foundKey];
                 if (val && typeof val === 'string') {
-                    // Clean Excel/Sheet artifacts like leading single quotes
                     val = val.trim().replace(/^'/, '');
                     if (val.includes('data:image')) return val;
                 }
@@ -388,7 +385,7 @@
             const sClass = "st-" + status.toLowerCase().replace(/\s/g, '');
             const pClass = row.priority === 'Urgent' ? 'p-urgent' : 'p-regular';
 
-            // DYNAMIC KEY DETECTION
+            // Extract the newly properly populated base64 strings
             const itemPhoto = getKeyValue(row, ['itemphoto', 'photo', 'image']) || "";
             const sigHod = getKeyValue(row, ['sighod', 'hodsignature', 'signaturehod', 'headsignature', 'signature1']) || "";
             const sigAdmin = getKeyValue(row, ['sigadmin', 'adminsignature', 'signatureadmin', 'signature2']) || "";
