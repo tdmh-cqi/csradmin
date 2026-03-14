@@ -103,7 +103,7 @@
             margin-left: var(--sidebar-width); flex: 1; padding: 25px; 
             width: calc(100% - var(--sidebar-width)); transition: margin-left 0.3s cubic-bezier(0.4, 0, 0.2, 1), width 0.3s cubic-bezier(0.4, 0, 0.2, 1); 
         }
-        .main-content.expanded { margin-left: 0; width: 100%; }
+        .main-content.expanded { margin-left: 0 !important; width: 100% !important; }
 
         .page-header { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 25px; flex-wrap: wrap; gap: 15px; }
         
@@ -133,7 +133,7 @@
         .filter-group label { font-size: 0.7rem; font-weight: 600; color: #444; text-transform: uppercase; }
         .filter-group select, .filter-group input { padding: 8px 10px; border: 1px solid #ddd; border-radius: 6px; font-size: 0.8rem; width: 100%; box-sizing: border-box; }
 
-        /* Highly Optimized Table Design */
+        /* Highly Optimized Table Design - Fluid with Scroll */
         .table-container { background: white; border-radius: 10px; box-shadow: 0 2px 8px rgba(0,0,0,0.05); overflow-x: auto; width: 100%; }
         table { width: 100%; border-collapse: collapse; min-width: 800px; }
         th { background: #f8f9fa; color: #444; font-weight: 600; padding: 12px 10px; text-align: left; font-size: 0.8rem; border-bottom: 2px solid #eee; }
@@ -150,6 +150,7 @@
         .st-completed { background: #e8f5e9; color: var(--color-completed); border: 1px solid #c8e6c9; }
         .st-disapproved { background: #ffebee; color: var(--color-disapproved); border: 1px solid #ffcdd2; }
 
+        /* Compact Action Panel */
         .action-select { padding: 6px; border-radius: 6px; border: 1px solid #ddd; font-size: 0.75rem; width: 100%; background-color: #fff; cursor: pointer; font-weight: 500; }
         .remark-input { padding: 8px; border-radius: 6px; border: 1px solid #ddd; font-size: 0.75rem; width: 100%; box-sizing: border-box; }
         .save-btn { background: var(--primary-navy); color: white; border: none; padding: 8px 12px; border-radius: 6px; cursor: pointer; display: flex; align-items: center; gap: 6px; justify-content: center; flex: 1; font-weight: 500; font-size: 0.75rem; transition: opacity 0.2s; white-space: nowrap;}
@@ -549,13 +550,7 @@
         const activeBtn = document.getElementById('tabBtn-' + tab);
         if (activeBtn) activeBtn.classList.add('active');
 
-        if(window.innerWidth <= 1024) {
-            const sidebar = document.getElementById('sidebar');
-            const main = document.getElementById('mainContent');
-            if(sidebar) sidebar.classList.add('hidden');
-            if(main) main.classList.add('expanded');
-            isMenuLocked = false;
-        }
+        if(window.innerWidth <= 1024) toggleSidebarLock();
 
         if(tab === 'analytics') {
             const title = document.getElementById('pageTitle');
@@ -633,7 +628,6 @@
         Swal.fire({ imageUrl: src, imageAlt: 'Visual Preview', width: 'auto', showCloseButton: true, showConfirmButton: false, backdrop: `rgba(0,0,10,0.85)` });
     }
 
-    // --- SENIOR FRIENDLY SMART CHECKLIST LOGIC ---
     function openItemsChecklist(id) {
         const row = allData.find(r => r.id == id);
         if (!row) return;
@@ -677,7 +671,6 @@
             }
         });
         
-        // Huge, static buttons for elderly accessibility
         html += `
             </div>
             <div style="margin-top:30px; display:flex; flex-direction:column; gap:12px; border-top: 2px solid #e2e8f0; padding-top: 20px;">
@@ -691,7 +684,7 @@
         Swal.fire({
             html: html,
             showConfirmButton: false,
-            width: '850px' // Large width for PC readability
+            width: '850px' 
         });
     }
 
@@ -810,9 +803,11 @@
             
             let displayStatus = status;
             let sClass = "st-" + status.toLowerCase().replace(/\s/g, '');
-            if (status === 'Pending' && row.receivedBy) {
-                displayStatus = "Received";
-                sClass = "st-received";
+            if (status === 'Pending') {
+                if (row.receivedBy) {
+                    displayStatus = "Received";
+                    sClass = "st-received";
+                }
             }
 
             tr.innerHTML = `
@@ -981,7 +976,6 @@
 
     // --- SUB-TAB EXECOMM ANALYTICS LOGIC ---
     function switchAnalyticsSubTab(subTab) {
-        // Toggle the sub-tab buttons
         ['overall', 'pending', 'completed', 'disapproved', 'top10'].forEach(t => {
             const btn = document.getElementById('anaBtn-' + t);
             const content = document.getElementById('ana-' + t);
@@ -1061,7 +1055,6 @@
             });
         });
 
-        // Slice at 10 to guarantee exactly Top 10 items
         const sortedItems = Object.keys(itemStats).sort((a,b) => itemStats[b].count - itemStats[a].count).slice(0, 10);
         
         const iBody = document.getElementById('itemSummaryBody');
@@ -1091,7 +1084,6 @@
             for (let i = 0; i < dTable.rows.length; i++) {
                 let rowData = [];
                 for (let j = 0; j < dTable.rows[i].cells.length; j++) {
-                    // Using textContent safely extracts data even if the tab is currently hidden
                     rowData.push('"' + dTable.rows[i].cells[j].textContent.trim().replace(/"/g, '""') + '"');
                 }
                 csvContent += rowData.join(",") + "\r\n";
