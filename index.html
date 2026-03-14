@@ -5,7 +5,6 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>CSR Admin | TDMH Requisition Management</title>
     
-    <!-- Dependencies -->
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
 
@@ -17,16 +16,16 @@
             --sidebar-width: 260px;
             --bg-gray: #f8f9fa;
             
-            /* Status Colors */
+            /* Enhanced Status Colors */
+            --color-pending: #8e8e8e;
             --color-received: #ef6c00;
+            --color-partial: #8b5cf6;
             --color-forrelease: #0288d1;
             --color-completed: #2e7d32;
             --color-disapproved: #c62828;
         }
 
-        * { 
-            box-sizing: border-box; 
-        }
+        * { box-sizing: border-box; }
         
         body { 
             font-family: 'Inter', sans-serif; 
@@ -35,46 +34,30 @@
             display: flex;
             min-height: 100vh;
             position: relative;
+            overflow-x: hidden;
         }
 
-        /* Dashboard Global Background Overlay */
         body::before {
-            content: '';
-            position: fixed;
-            top: 0; left: 0; width: 100%; height: 100%;
+            content: ''; position: fixed; top: 0; left: 0; width: 100%; height: 100%;
             background: url('images/tdmh-background.jpg') no-repeat center center;
-            background-size: cover;
-            opacity: 0.1;
-            z-index: -1;
-            pointer-events: none;
+            background-size: cover; opacity: 0.1; z-index: -1; pointer-events: none;
         }
 
-        /* CRITICAL: Forces SweetAlert to appear OVER the #loginOverlay */
-        .swal2-container {
-            z-index: 10000 !important;
-        }
+        .swal2-container { z-index: 10000 !important; }
 
-        /* --- LOGIN OVERLAY WITH HOSPITAL DESIGN --- */
+        /* --- LOGIN OVERLAY --- */
         #loginOverlay { 
-            position: fixed; 
-            top: 0; left: 0; width: 100%; height: 100%; 
+            position: fixed; top: 0; left: 0; width: 100%; height: 100%; 
             background: linear-gradient(135deg, rgba(0, 33, 71, 0.85) 0%, rgba(0, 18, 41, 0.95) 100%), 
                         url('https://images.unsplash.com/photo-1551076805-e1869033e561?auto=format&fit=crop&q=80&w=2000') no-repeat center center;
-            background-size: cover;
-            display: flex; justify-content: center; align-items: center; 
-            z-index: 9999; 
-            transition: opacity 0.5s ease, visibility 0.5s ease;
+            background-size: cover; display: flex; justify-content: center; align-items: center; 
+            z-index: 9999; transition: opacity 0.5s ease, visibility 0.5s ease;
         }
         
         .login-wrapper {
-            position: relative;
-            background: rgba(255, 255, 255, 0.98);
-            padding: 50px 45px;
-            border-radius: 24px;
-            box-shadow: 0 30px 60px rgba(0, 0, 0, 0.5), 0 0 0 1px rgba(255,255,255,0.1) inset;
-            text-align: center;
-            width: 100%;
-            max-width: 420px;
+            position: relative; background: rgba(255, 255, 255, 0.98); padding: 50px 45px;
+            border-radius: 24px; box-shadow: 0 30px 60px rgba(0, 0, 0, 0.5), 0 0 0 1px rgba(255,255,255,0.1) inset;
+            text-align: center; width: 100%; max-width: 420px;
             animation: slideUpFade 0.6s cubic-bezier(0.16, 1, 0.3, 1) forwards;
         }
 
@@ -83,38 +66,24 @@
             100% { opacity: 1; transform: translateY(0); }
         }
         
-        .login-logo-container {
-            padding: 10px;
-            margin-bottom: 15px;
-            display: inline-block;
-        }
-
-        .login-logo {
-            max-width: 240px; 
-            height: auto;
-            transition: transform 0.3s ease;
-        }
-
+        .login-logo-container { padding: 10px; margin-bottom: 15px; display: inline-block; }
+        .login-logo { max-width: 260px; height: auto; transition: transform 0.3s ease; }
         .login-logo:hover { transform: scale(1.05); }
         
         .login-wrapper h2 { color: #0f172a; margin: 0 0 8px 0; font-size: 1.8rem; font-weight: 800; letter-spacing: -0.5px; }
         .login-wrapper p { color: #64748b; margin: 0 0 35px 0; font-size: 0.95rem; font-weight: 500; }
         
         .login-wrapper .input-group { position: relative; margin-bottom: 25px; }
-        .login-wrapper .input-group i { position: absolute; left: 18px; top: 50%; transform: translateY(-50%); color: #94a3b8; font-size: 18px; transition: color 0.3s ease; z-index: 2; }
-        
+        .login-wrapper .input-group i { position: absolute; left: 18px; top: 50%; transform: translateY(-50%); color: #94a3b8; font-size: 18px; z-index: 2; }
         .login-wrapper input {
-            position: relative; width: 100%; padding: 16px 16px 16px 52px; border: 2px solid #e2e8f0; border-radius: 14px;
+            width: 100%; padding: 16px 16px 16px 52px; border: 2px solid #e2e8f0; border-radius: 14px;
             font-size: 16px; transition: all 0.3s ease; background: #f8fafc; font-weight: 500; color: #0f172a;
         }
         .login-wrapper input:focus { outline: none; border-color: var(--primary-navy); background: #ffffff; box-shadow: 0 0 0 4px rgba(0,33,71,0.1); }
-        .login-wrapper .input-group:focus-within i { color: var(--primary-navy); }
-        
         .login-wrapper button {
             width: 100%; padding: 18px; background: linear-gradient(135deg, #002147 0%, #003066 100%);
             color: white; border: none; border-radius: 14px; font-weight: 600; font-size: 16px; cursor: pointer;
             transition: all 0.3s ease; display: flex; justify-content: center; align-items: center; gap: 10px;
-            box-shadow: 0 8px 16px rgba(0,33,71,0.2);
         }
         .login-wrapper button:hover { transform: translateY(-2px); box-shadow: 0 12px 20px rgba(0,33,71,0.3); background: linear-gradient(135deg, #00152e 0%, #002147 100%); }
 
@@ -126,16 +95,14 @@
         .sidebar-logo { max-width: 100%; background: white; padding: 10px; border-radius: 8px; margin-bottom: 30px; cursor: pointer; transition: 0.3s; }
         .sidebar-logo:hover { transform: scale(1.03); }
         
-        .nav-item { padding: 12px 15px; margin-bottom: 5px; border-radius: 8px; cursor: pointer; display: flex; align-items: center; gap: 10px; transition: 0.2s; }
-        .nav-item:hover, .nav-item.active { background: rgba(255,255,255,0.1); }
+        .nav-item { padding: 12px 15px; margin-bottom: 5px; border-radius: 8px; cursor: pointer; display: flex; align-items: center; gap: 10px; transition: 0.2s; font-weight: 500; }
+        .nav-item:hover, .nav-item.active { background: rgba(255,255,255,0.15); border-left: 4px solid white; }
         .nav-item i { width: 20px; }
 
         /* Main Content */
         .main-content { margin-left: var(--sidebar-width); flex: 1; padding: 30px; width: calc(100% - var(--sidebar-width)); }
-        
         .page-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 30px; flex-wrap: wrap; gap: 15px; }
         
-        /* Quota Tracker Box */
         .quota-box {
             background: rgba(255,255,255,0.9); border: 1px solid #ddd; padding: 8px 15px; border-radius: 8px;
             font-size: 0.8rem; color: #444; font-weight: 500; display: flex; flex-direction: column; align-items: flex-end;
@@ -148,7 +115,6 @@
         .stat-card h4 { margin: 0; color: #666; font-size: 0.8rem; text-transform: uppercase; }
         .stat-card div { font-size: 1.5rem; font-weight: 700; color: var(--primary-navy); margin-top: 5px; }
 
-        /* Filter Controls */
         .filters-section { background: white; padding: 20px; border-radius: 12px; margin-bottom: 25px; box-shadow: 0 2px 10px rgba(0,0,0,0.05); display: flex; flex-wrap: wrap; gap: 15px; align-items: flex-end; }
         .filter-group { display: flex; flex-direction: column; gap: 5px; flex: 1; min-width: 150px; }
         .filter-group label { font-size: 0.75rem; font-weight: 600; color: #444; }
@@ -156,27 +122,31 @@
 
         /* Table Design */
         .table-container { background: white; border-radius: 12px; box-shadow: 0 2px 10px rgba(0,0,0,0.05); overflow-x: auto; }
-        table { width: 100%; border-collapse: collapse; min-width: 900px; }
+        table { width: 100%; border-collapse: collapse; min-width: 1000px; }
         th { background: #f8f9fa; color: #444; font-weight: 600; padding: 15px; text-align: left; font-size: 0.85rem; border-bottom: 2px solid #eee; white-space: nowrap; }
         td { padding: 15px; font-size: 0.85rem; border-bottom: 1px solid #eee; vertical-align: middle; }
         
-        .priority-indicator { width: 8px; height: 8px; border-radius: 50%; display: inline-block; margin-right: 5px; }
-        .p-urgent { background: var(--danger); box-shadow: 0 0 5px var(--danger); }
-        .p-regular { background: #ccc; }
+        .row-animating { animation: slideOutRight 0.5s ease forwards; pointer-events: none; }
+        @keyframes slideOutRight { to { opacity: 0; transform: translateX(50px); } }
 
-        .status-badge { padding: 5px 12px; border-radius: 20px; font-size: 0.75rem; font-weight: 600; text-transform: uppercase; display: inline-block; text-align: center; min-width: 100px; }
+        .status-badge { padding: 5px 12px; border-radius: 20px; font-size: 0.75rem; font-weight: 700; text-transform: uppercase; display: inline-block; text-align: center; min-width: 110px; }
+        .st-pending { background: #f1f5f9; color: var(--color-pending); border: 1px solid #cbd5e1; }
         .st-received { background: #fff3e0; color: var(--color-received); border: 1px solid var(--color-received); }
-        .st-forrelease { background: #e0f7fa; color: var(--color-forrelease); border: 1px solid var(--color-forrelease); }
-        .st-completed { background: #e8f5e9; color: var(--color-completed); border: 1px solid var(--color-completed); }
-        .st-disapproved { background: #ffebee; color: var(--color-disapproved); border: 1px solid var(--color-disapproved); }
+        .st-partialrelease { background: #e0e7ff; color: var(--color-partial); border: 1px solid #c7d2fe; }
+        .st-forrelease { background: #e0f7fa; color: var(--color-forrelease); border: 1px solid #b3e5fc; }
+        .st-completed { background: #e8f5e9; color: var(--color-completed); border: 1px solid #c8e6c9; }
+        .st-disapproved { background: #ffebee; color: var(--color-disapproved); border: 1px solid #ffcdd2; }
 
-        .action-select { padding: 8px; border-radius: 6px; border: 1px solid #ddd; font-size: 0.85rem; width: 140px; background-color: #fff; cursor: pointer; }
+        .action-select { padding: 8px; border-radius: 6px; border: 1px solid #ddd; font-size: 0.85rem; width: 100%; background-color: #fff; cursor: pointer; font-weight: 500; }
         .remark-input { padding: 10px; border-radius: 6px; border: 1px solid #ddd; font-size: 0.85rem; width: 100%; box-sizing: border-box; }
         .save-btn { background: var(--primary-navy); color: white; border: none; padding: 10px 15px; border-radius: 6px; cursor: pointer; display: flex; align-items: center; gap: 8px; justify-content: center; flex: 1; font-weight: 500; transition: opacity 0.2s; }
         .save-btn:hover { opacity: 0.9; }
 
+        .btn-items { background: #f8fafc; border: 1px solid #cbd5e1; padding: 5px 10px; border-radius: 4px; font-size: 0.75rem; cursor: pointer; color: var(--primary-navy); font-weight: 600; width: 100%; margin-top: 5px; text-align: left; }
+        .btn-items:hover { background: #e2e8f0; }
+
         /* Image Display Styles */
-        .thumb-img { width: 70px; height: 70px; border-radius: 6px; object-fit: cover; cursor: pointer; border: 1px solid #eee; background: #fff; transition: transform 0.2s; display: block; }
+        .thumb-img { width: 70px; height: 70px; border-radius: 6px; object-fit: cover; cursor: pointer; border: 1px solid #eee; background: #fff; transition: transform 0.2s; display: block; margin-bottom: 5px; }
         .thumb-img:hover { transform: scale(1.1); }
         .sig-preview { width: 100px; height: 50px; border: 1px solid #eee; background: #ffffff; object-fit: contain; cursor: pointer; display: block; margin-top: 5px; transition: transform 0.2s; }
         .sig-preview:hover { transform: scale(1.05); }
@@ -196,7 +166,6 @@
             .page-header { flex-direction: column; align-items: flex-start; }
         }
 
-        /* --- PRINT STYLES --- */
         @media print {
             body { background: white; font-size: 12px; }
             body::before { display: none !important; }
@@ -234,8 +203,11 @@
     <a href="." title="Refresh Dashboard">
         <img src="images/tdmh-logo.png" class="sidebar-logo" alt="TDMH Logo" onerror="this.style.display='none'">
     </a>
-    <div class="nav-item active">
-        <i class="fas fa-list-check"></i> <span>All Requests</span>
+    <div class="nav-item active" id="tab-active" onclick="switchAdminTab('active')">
+        <i class="fas fa-list-check"></i> <span>Active Requests</span>
+    </div>
+    <div class="nav-item" id="tab-archive" onclick="switchAdminTab('archive')">
+        <i class="fas fa-box-archive"></i> <span>Archived (Completed)</span>
     </div>
     <div class="nav-item" style="margin-top: auto;" onclick="location.reload()">
         <i class="fas fa-sign-out-alt"></i> <span>Logout</span>
@@ -245,7 +217,7 @@
 <main class="main-content" id="dashboard" style="display:none;">
     <div class="page-header">
         <div style="display: flex; flex-direction: column; gap: 5px;">
-            <h1 style="margin:0; font-size: 1.5rem; color: var(--primary-navy);">Requisition Overview</h1>
+            <h1 style="margin:0; font-size: 1.5rem; color: var(--primary-navy);" id="pageTitle">Active Requisitions</h1>
             
             <div style="display: flex; align-items: center; gap: 15px;">
                 <div style="font-size: 0.75rem; color: #2e7d32; display: flex; align-items: center; gap: 5px;">
@@ -269,22 +241,23 @@
         </div>
     </div>
 
-    <div class="stats-grid">
+    <!-- Hidden while in Archive Tab -->
+    <div class="stats-grid" id="statsGrid">
         <div class="stat-card">
-            <h4>Total Requests</h4>
+            <h4>Total Active</h4>
             <div id="statTotal">0</div>
         </div>
-        <div class="stat-card" style="border-left-color: var(--color-received);">
-            <h4>Received</h4>
+        <div class="stat-card" style="border-left-color: var(--color-pending);">
+            <h4>Pending / Received</h4>
             <div id="statPending">0</div>
+        </div>
+        <div class="stat-card" style="border-left-color: var(--color-partial);">
+            <h4>Partial Release</h4>
+            <div id="statPartial">0</div>
         </div>
         <div class="stat-card" style="border-left-color: var(--color-forrelease);">
             <h4>For Releasing</h4>
             <div id="statForReleasing">0</div>
-        </div>
-        <div class="stat-card" style="border-left-color: var(--color-completed);">
-            <h4>Completed</h4>
-            <div id="statCompleted">0</div>
         </div>
     </div>
 
@@ -293,13 +266,13 @@
             <label>Date</label>
             <input type="date" id="filterDate" onchange="applyFilters()">
         </div>
-        <div class="filter-group">
+        <div class="filter-group" id="filterStatusGroup">
             <label>Status</label>
             <select id="filterStatusDropdown" onchange="applyFilters()">
-                <option value="">All Statuses</option>
-                <option value="Received">Received</option>
+                <option value="">All Active Statuses</option>
+                <option value="Pending">Pending</option>
+                <option value="Partial Release">Partial Release</option>
                 <option value="For Release">For Release</option>
-                <option value="Completed">Completed</option>
                 <option value="Disapproved">Disapproved</option>
             </select>
         </div>
@@ -341,14 +314,6 @@
                 <option value="Ultrasound">Ultrasound</option>
             </select>
         </div>
-        <div class="filter-group">
-            <label>Priority</label>
-            <select id="filterPriority" onchange="applyFilters()">
-                <option value="">All</option>
-                <option value="Urgent">Urgent</option>
-                <option value="Regular">Regular</option>
-            </select>
-        </div>
         <button onclick="resetFilters()" class="remark-input" style="cursor:pointer; background: #eee; width: auto; border: 1px solid #ccc; height: 38px;">Reset Filters</button>
     </div>
 
@@ -356,14 +321,12 @@
         <table id="adminTable">
             <thead>
                 <tr>
-                    <th>ID</th>
-                    <th>Requester</th>
-                    <th>Items</th>
-                    <th>Qty</th>
+                    <th>ID & Requestor</th>
+                    <th>Items & Qty</th>
                     <th>Photo</th>
                     <th>Notes & Signatures</th>
                     <th>Status</th>
-                    <th style="min-width: 220px;">Admin Action</th>
+                    <th style="min-width: 280px;">Action Panel</th>
                 </tr>
             </thead>
             <tbody id="tableBody">
@@ -381,17 +344,12 @@
     const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbzhQwVJTvLo_W4IcxPTdcCDojC92XjS4Y5wb1r_ldwO1jXu7LJ99QBMJ_Ncl4FBek239Q/exec";
     
     let allData = [];
+    let currentAdminTab = 'active'; 
     
-    // Smooth Non-blocking Toast Notifier for operations
     const Toast = Swal.mixin({
-        toast: true,
-        position: 'bottom-end',
-        showConfirmButton: false,
-        timer: 2000,
-        timerProgressBar: true
+        toast: true, position: 'bottom-end', showConfirmButton: false, timer: 2000, timerProgressBar: true
     });
 
-    // Start Reset Timer (Resets at Midnight Pacific Time)
     setInterval(() => {
         let now = new Date();
         let ptDate = new Date(now.toLocaleString("en-US", {timeZone: "America/Los_Angeles"}));
@@ -407,10 +365,7 @@
 
     async function login() {
         const passInput = document.getElementById('adminPass').value;
-        if (!passInput) {
-            Swal.fire('Required', 'Please enter a password', 'warning');
-            return;
-        }
+        if (!passInput) return Swal.fire('Required', 'Please enter a password', 'warning');
 
         Swal.fire({ title: 'Authenticating...', allowOutsideClick: false, didOpen: () => Swal.showLoading() });
 
@@ -419,10 +374,7 @@
             const data = await res.json();
 
             if (data.success) {
-                // Success Modal
                 Swal.fire({ icon: 'success', title: 'Access Granted!', showConfirmButton: false, timer: 1000 });
-                
-                // Update Quota Visuals
                 updateQuotaDisplay(data.quota);
 
                 setTimeout(() => {
@@ -433,15 +385,13 @@
                         fetchData();
                     }, 400);
                 }, 1000);
-                
             } else {
-                // Invalid Password Notification
                 Swal.fire({ icon: 'error', title: 'Invalid Password', text: 'The credentials provided are incorrect. Please try again.' });
                 document.getElementById('adminPass').value = '';
             }
         } catch (e) {
             console.error("Login error:", e);
-            Swal.fire('Error', 'Could not connect to server to verify password.', 'error');
+            Swal.fire('Error', 'Could not connect to server.', 'error');
         }
     }
 
@@ -450,30 +400,43 @@
         qCount.innerText = quota;
         if(quota <= 10) {
             qCount.className = "critical";
-            if (quota === 0) {
-                Swal.fire('Email Limit Reached', 'Google has hit the daily limit. You must call departments to update them manually until the timer resets.', 'warning');
-            }
+            if (quota === 0) Swal.fire('Email Limit Reached', 'Google has hit the daily limit. You must call departments manually until the timer resets.', 'warning');
         } else {
             qCount.className = "";
         }
     }
 
+    function switchAdminTab(tab) {
+        currentAdminTab = tab;
+        document.getElementById('tab-active').classList.remove('active');
+        document.getElementById('tab-archive').classList.remove('active');
+        document.getElementById('tab-' + tab).classList.add('active');
+
+        if(tab === 'archive') {
+            document.getElementById('pageTitle').innerText = 'Archived Requisitions';
+            document.getElementById('statsGrid').style.display = 'none';
+            document.getElementById('filterStatusGroup').style.display = 'none';
+        } else {
+            document.getElementById('pageTitle').innerText = 'Active Requisitions';
+            document.getElementById('statsGrid').style.display = 'grid';
+            document.getElementById('filterStatusGroup').style.display = 'flex';
+        }
+        applyFilters(); 
+    }
+
     async function fetchData() {
         document.getElementById('loadingState').style.display = 'block';
-        const tbody = document.getElementById('tableBody');
-        tbody.innerHTML = ''; 
+        document.getElementById('tableBody').innerHTML = ''; 
         
         try {
             const res = await fetch(`${SCRIPT_URL}?action=getRequests`);
             const responseData = await res.json();
             allData = responseData.data;
-            
             updateQuotaDisplay(responseData.quota);
             allData.sort((a, b) => b.id - a.id);
             updateStats(allData);
-            renderTable(allData);
+            applyFilters();
         } catch (e) {
-            console.error(e);
             Toast.fire({ icon: 'error', title: 'Failed to load data' });
         } finally {
             document.getElementById('loadingState').style.display = 'none';
@@ -481,40 +444,105 @@
     }
 
     function updateStats(data) {
-        document.getElementById('statTotal').innerText = data.length;
-        document.getElementById('statPending').innerText = data.filter(r => (r.status || 'Received') === 'Received' || r.status === 'Pending').length;
-        document.getElementById('statForReleasing').innerText = data.filter(r => r.status === 'For Releasing' || r.status === 'For Release' || r.status === 'Released').length;
-        document.getElementById('statCompleted').innerText = data.filter(r => r.status === 'Completed').length;
+        const active = data.filter(r => r.status !== 'Completed');
+        document.getElementById('statTotal').innerText = active.length;
+        
+        document.getElementById('statPending').innerText = active.filter(r => r.status === 'Pending' || r.receivedBy !== '').length;
+        document.getElementById('statPartial').innerText = active.filter(r => r.status === 'Partial Release').length;
+        document.getElementById('statForReleasing').innerText = active.filter(r => r.status === 'For Release').length;
     }
 
     function viewFullImage(src) {
         if(!src || src.length < 20) return;
+        Swal.fire({ imageUrl: src, imageAlt: 'Visual Preview', width: 'auto', showCloseButton: true, showConfirmButton: false, backdrop: `rgba(0,0,10,0.85)` });
+    }
+
+    function openItemsChecklist(id) {
+        const row = allData.find(r => r.id == id);
+        
+        const items = String(row.items || '').split('|').map(i => i.trim());
+        const qtys = String(row.qtys || '').split('|').map(i => i.trim());
+        const photosArr = String(row.photo || '').split('|').map(p => p.trim());
+        const checkedArr = row.checkedItems ? String(row.checkedItems).split('|') : new Array(items.length).fill('false');
+
+        let priorityColor = row.priority === 'Urgent' ? '#dc2626' : '#64748b';
+        
+        // Ensure accurate time display even if Google Sheets sends historical 1899 date string
+        let displayTime = row.time || '';
+        if (typeof displayTime === 'string' && displayTime.includes('1899')) {
+             try { displayTime = new Date(displayTime).toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'}); } catch(e){}
+        }
+
+        let html = `
+            <div style="display:flex; gap:15px; text-align:left; margin-bottom:20px; background:#f8fafc; padding:15px; border-radius:8px; border:1px solid #e2e8f0;">
+                <div style="flex:1; font-size:13px; line-height:1.5;">
+                    <h4 style="margin:0 0 5px 0; color:#0f172a; font-size:16px;">Request #${row.id}</h4>
+                    <div><strong>Requester:</strong> ${row.reqBy}</div>
+                    <div><strong>Dept:</strong> ${row.dept}</div>
+                    <div><strong>Date:</strong> ${row.date} • ${displayTime}</div>
+                    <div><strong>Priority:</strong> <span style="color:${priorityColor}; font-weight:bold;">${row.priority}</span></div>
+                    <div style="margin-top:5px; color:#64748b; font-style:italic;">Notes: ${row.additionalNotes || 'None'}</div>
+                </div>
+            </div>
+            
+            <div style="text-align:left; max-height:300px; overflow-y:auto; padding-right:5px;">
+                <p style="font-size:13px; color:#64748b; margin-bottom:10px; font-weight:600;">Select items that are READY for release:</p>
+        `;
+        
+        items.forEach((item, idx) => {
+            if(item) {
+                const isChecked = checkedArr[idx] === 'true' ? 'checked' : '';
+                // Photo perfectly aligned inside the checklist row!
+                let imgHtml = photosArr[idx] ? `<img src="${photosArr[idx]}" style="width:40px; height:40px; object-fit:cover; border-radius:4px; border:1px solid #cbd5e1; cursor:pointer;" onclick="viewFullImage('${photosArr[idx]}')">` : '';
+
+                html += `
+                    <div style="display:flex; align-items:center; gap:12px; padding:12px; background:#fff; border:1px solid #e2e8f0; border-radius:8px; margin-bottom:8px;">
+                        <input type="checkbox" id="itemchk-${id}-${idx}" style="width:18px; height:18px; cursor:pointer;" ${isChecked}>
+                        ${imgHtml}
+                        <label for="itemchk-${id}-${idx}" style="cursor:pointer; flex:1; margin:0; font-size:14px; text-align:left;">
+                            <strong>${qtys[idx] || '-'}x</strong> ${item}
+                        </label>
+                    </div>
+                `;
+            }
+        });
+        html += '</div>';
+
         Swal.fire({
-            imageUrl: src, imageAlt: 'Visual Preview', width: 'auto', showCloseButton: true, showConfirmButton: false, backdrop: `rgba(0,0,10,0.85)`
+            html: html,
+            showCancelButton: true,
+            confirmButtonText: 'Save Selection',
+            cancelButtonText: 'Close',
+            confirmButtonColor: '#002147',
+            width: '500px'
+        }).then(res => {
+            if(res.isConfirmed) {
+                let newChecked = [];
+                items.forEach((item, idx) => {
+                    if (item) {
+                        newChecked.push(document.getElementById(`itemchk-${id}-${idx}`).checked ? 'true' : 'false');
+                    } else {
+                        newChecked.push('false');
+                    }
+                });
+                updateChecklist(id, newChecked.join('|'));
+            }
         });
     }
 
-    function getKeyValue(obj, patterns) {
-        const keys = Object.keys(obj);
-        for (const pattern of patterns) {
-            const foundKey = keys.find(k => k.toLowerCase().replace(/['\s_]/g, '').includes(pattern.toLowerCase()));
-            if (foundKey) {
-                let val = obj[foundKey];
-                if (val && typeof val === 'string') {
-                    val = val.trim().replace(/^'/, '');
-                    if (val.includes('data:image')) return val;
-                }
-            }
+    async function updateChecklist(id, checkedStr) {
+        Toast.fire({icon: 'info', title: 'Saving checklist...'});
+        try {
+            await fetch(SCRIPT_URL, {
+                method: 'POST', mode: 'no-cors',
+                body: JSON.stringify({ action: 'updateChecklist', id: id, checkedItems: checkedStr })
+            });
+            Toast.fire({icon: 'success', title: 'Checklist saved!'});
+            let row = allData.find(r => r.id == id);
+            if(row) row.checkedItems = checkedStr;
+        } catch(e) {
+            Toast.fire({icon: 'error', title: 'Failed to save checklist'});
         }
-        return null;
-    }
-
-    // Instantly visually updates the badge color without waiting for the server
-    function updateBadge(selectElement, id) {
-        const val = selectElement.value;
-        const badge = document.getElementById('badge-' + id);
-        badge.innerText = val;
-        badge.className = 'status-badge st-' + val.toLowerCase().replace(/\s/g, '');
     }
 
     function renderTable(data) {
@@ -522,124 +550,165 @@
         tbody.innerHTML = '';
         
         if (data.length === 0) {
-            tbody.innerHTML = '<tr><td colspan="7" style="text-align: center; padding: 20px;">No requests found.</td></tr>';
+            tbody.innerHTML = '<tr><td colspan="6" style="text-align: center; padding: 20px;">No requests found.</td></tr>';
             return;
         }
 
         data.forEach(row => {
             const tr = document.createElement('tr');
+            tr.id = `row-${row.id}`;
+            let status = row.status || 'Pending';
             
-            let status = row.status || 'Received';
-            if (status === 'Pending') status = 'Received';
-            if (status === 'For Releasing' || status === 'Released') status = 'For Release';
+            let displayTime = row.time || '';
+            if (typeof displayTime === 'string' && displayTime.includes('1899')) {
+                 try { displayTime = new Date(displayTime).toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'}); } catch(e){}
+            }
+
+            const itemsArr = String(row.items || '').split('|').map(i => i.trim());
+            const qtysArr = String(row.qtys || '').split('|').map(i => i.trim());
             
-            const sClass = "st-" + status.toLowerCase().replace(/\s/g, '');
-            const pClass = row.priority === 'Urgent' ? 'p-urgent' : 'p-regular';
+            let itemsHtml = '<ul style="margin:0; padding-left:15px; font-size:0.8rem; line-height:1.4;">';
+            let displayCount = Math.min(itemsArr.length, 2);
+            for(let i=0; i<displayCount; i++) {
+                if (itemsArr[i]) itemsHtml += `<li><b>${qtysArr[i]||'-'}x</b> ${itemsArr[i]}</li>`;
+            }
+            itemsHtml += '</ul>';
+            
+            if(itemsArr.length > 2) {
+                itemsHtml += `<div style="font-size:11px; color:#888; margin-top:5px; margin-left:15px;">+ ${itemsArr.length - 2} more...</div>`;
+            }
+            itemsHtml += `<button class="btn-items" onclick="openItemsChecklist(${row.id})"><i class="fas fa-list-check"></i> View Items & Checklist</button>`;
 
-            const itemPhoto = getKeyValue(row, ['itemphoto', 'photo', 'image']) || "";
-            const sigHod = getKeyValue(row, ['sighod', 'hodsignature', 'signaturehod', 'headsignature', 'signature1']) || "";
-            const sigAdmin = getKeyValue(row, ['sigadmin', 'adminsignature', 'signatureadmin', 'signature2']) || "";
-            const notes = row.additionalNotes || row.notes || "No notes provided.";
+            const firstPhoto = String(row.photo || "").split('|').find(p => p.trim() !== "");
+            const sigHod = row.sigHod || "";
+            const sigAdmin = row.sigAdmin || "";
+            const notes = row.additionalNotes || "No notes provided.";
 
-            let actionHtml = `
-                <select class="action-select" id="act-${row.id}" style="margin-bottom: 10px;" onchange="handleStatusChange(this, ${row.id})">
-                    <option value="Received" ${status === 'Received' ? 'selected' : ''}>Received</option>
-                    <option value="For Release" ${status === 'For Release' ? 'selected' : ''}>For Release</option>
-                    <option value="Completed" ${status === 'Completed' ? 'selected' : ''}>Completed</option>
-                    <option value="Disapproved" ${status === 'Disapproved' ? 'selected' : ''}>Disapproved</option>
-                </select>
-                <div id="notes-container-${row.id}" style="display: flex; flex-direction: column; gap: 8px;">
-                    <input type="text" class="remark-input" id="rem-${row.id}" value="${row.remarks || ''}" placeholder="Optional notes/reason...">
-                    <div style="display: flex; gap: 5px;">
-                        <button class="save-btn" onclick="updateRow(${row.id}, false)" title="Save changes without emailing additional notes">
-                            <i class="fas fa-save"></i> Save
-                        </button>
-                        <button class="save-btn" style="background: #0288d1;" onclick="updateRow(${row.id}, true)" title="Save & Send Note to Requestor">
-                            <i class="fas fa-paper-plane"></i> Send Note
-                        </button>
+            let actionHtml = '';
+            
+            if (currentAdminTab === 'active') {
+                actionHtml = `
+                    <div style="display:flex; flex-direction:column; gap:6px; margin-bottom: 8px;">
+                        <select class="action-select" id="rec-${row.id}" onchange="updateReceiver(this, ${row.id})">
+                            <option value="">-- Assign Receiver --</option>
+                            <option value="Sir Emman" ${row.receivedBy === 'Sir Emman' ? 'selected' : ''}>Received by Sir Emman</option>
+                            <option value="Sir Eruel" ${row.receivedBy === 'Sir Eruel' ? 'selected' : ''}>Received by Sir Eruel</option>
+                        </select>
+                        <select class="action-select" id="act-${row.id}" onchange="handleStatusChange(this, ${row.id})">
+                            <option value="Pending" ${status === 'Pending' ? 'selected' : ''}>Pending</option>
+                            <option value="Partial Release" ${status === 'Partial Release' ? 'selected' : ''}>Partial Release (Pending Items)</option>
+                            <option value="For Release" ${status === 'For Release' ? 'selected' : ''}>For Release (Full)</option>
+                            <option value="Completed" ${status === 'Completed' ? 'selected' : ''}>Completed</option>
+                            <option value="Disapproved" ${status === 'Disapproved' ? 'selected' : ''}>Disapproved</option>
+                        </select>
                     </div>
-                </div>
-            `;
+                    <div id="notes-container-${row.id}" style="display: flex; flex-direction: column; gap: 6px;">
+                        <input type="text" class="remark-input" id="rem-${row.id}" value="${row.remarks || ''}" placeholder="Optional notes/reason...">
+                        <div style="display: flex; gap: 5px;">
+                            <button class="save-btn" onclick="updateRowNote(${row.id}, false)" title="Save note without email">
+                                <i class="fas fa-save"></i> Save
+                            </button>
+                            <button class="save-btn" style="background: #0288d1;" onclick="updateRowNote(${row.id}, true)" title="Save & Send Note Email">
+                                <i class="fas fa-paper-plane"></i> Send
+                            </button>
+                        </div>
+                    </div>
+                `;
+            } else {
+                actionHtml = `
+                    <div style="font-size:12px; color:#2e7d32; margin-bottom:10px; font-weight:bold;">
+                        <i class="fas fa-check-circle"></i> Archived Request
+                    </div>
+                    <button class="save-btn" style="background: #64748b;" onclick="restoreRequest(${row.id})" title="Send back to Active panel">
+                        <i class="fas fa-undo"></i> Restore Mistaken Item
+                    </button>
+                `;
+            }
+            
+            let displayStatus = status;
+            let sClass = "st-" + status.toLowerCase().replace(/\s/g, '');
+            if (status === 'Pending') {
+                if (row.receivedBy) {
+                    displayStatus = "Received";
+                    sClass = "st-received";
+                }
+            }
 
             tr.innerHTML = `
                 <td>
                     <strong>#${row.id}</strong><br>
-                    <span style="font-size: 10px; color: #888;">${row.date || ''}</span><br>
-                    <span style="font-size: 10px; color: #888;">${row.time || ''}</span>
-                </td>
-                <td>
-                    <div style="font-weight:600">${row.dept || 'N/A'}</div>
+                    <span style="font-size: 10px; color: #888;">${row.date || ''} • ${displayTime}</span><br>
+                    <div style="margin-top:5px; font-weight:600; font-size:0.8rem;">${row.dept || 'N/A'}</div>
                     <div style="font-size:0.75rem; color:#666">${row.reqBy || 'Unknown'}</div>
                 </td>
+                <td>${itemsHtml}</td>
                 <td>
-                    <div style="font-size:0.8rem; line-height:1.4">
-                        ${row.items ? String(row.items).split('|').map(i => `• ${i.trim()}`).join('<br>') : 'No items listed'}
-                    </div>
-                </td>
-                <td>
-                    <div style="font-size:0.8rem; line-height:1.4; text-align:center; font-weight:600;">
-                        ${row.qtys ? String(row.qtys).split('|').map(q => q.trim()).join('<br>') : '-'}
-                    </div>
-                </td>
-                <td>
-                    ${itemPhoto ? `<img src="${itemPhoto}" class="thumb-img" onclick="viewFullImage('${itemPhoto}')">` : '<div class="no-sig-box">NO PHOTO</div>'}
+                    ${firstPhoto ? `<img src="${firstPhoto}" class="thumb-img" onclick="viewFullImage('${firstPhoto}')">` : '<div class="no-sig-box">NO PHOTO</div>'}
                 </td>
                 <td>
                     <div class="notes-text">"${notes}"</div>
                     <div style="display:flex; flex-wrap: wrap; gap:10px; margin-top:8px; align-items: flex-end;">
-                        <div>
-                            ${sigHod ? `<img src="${sigHod}" class="sig-preview" onclick="viewFullImage('${sigHod}')">` : '<div class="no-sig-box">MISSING<br>HOD SIG</div>'}
-                            <span style="font-size:9px; color:#777; font-weight:bold; display:block; text-align:center; margin-top:3px;">HOD</span>
-                        </div>
-                        <div>
-                            ${sigAdmin ? `<img src="${sigAdmin}" class="sig-preview" onclick="viewFullImage('${sigAdmin}')">` : '<div class="no-sig-box" style="border-style:solid; border-width:1px;">PENDING<br>ADMIN SIG</div>'}
-                            <span style="font-size:9px; color:#777; font-weight:bold; display:block; text-align:center; margin-top:3px;">ADMIN</span>
-                        </div>
+                        <div>${sigHod ? `<img src="${sigHod}" class="sig-preview" onclick="viewFullImage('${sigHod}')">` : '<div class="no-sig-box">MISSING<br>HOD</div>'}</div>
+                        <div>${sigAdmin ? `<img src="${sigAdmin}" class="sig-preview" onclick="viewFullImage('${sigAdmin}')">` : '<div class="no-sig-box">PENDING<br>ADMIN</div>'}</div>
                     </div>
                 </td>
                 <td style="text-align: center;">
-                    <span class="priority-indicator ${pClass}"></span><br>
-                    <span id="badge-${row.id}" class="status-badge ${sClass}" style="margin-top: 5px;">${status}</span>
+                    <span class="priority-indicator ${row.priority === 'Urgent' ? 'p-urgent' : 'p-regular'}"></span><br>
+                    <span id="badge-${row.id}" class="status-badge ${sClass}" style="margin-top: 5px;">${displayStatus}</span><br>
+                    <div id="recv-badge-${row.id}" style="font-size:10px; color:#666; margin-top:4px; font-weight:bold;">${row.receivedBy ? row.receivedBy : 'Unassigned'}</div>
                 </td>
-                <td>
-                    ${actionHtml}
-                </td>
+                <td>${actionHtml}</td>
             `;
             tbody.appendChild(tr);
         });
     }
 
-    // Smooth, non-blocking auto-save for the dropdown
-    async function handleStatusChange(selectElement, id) {
-        updateBadge(selectElement, id);
-        const newStatus = selectElement.value;
-        const newRemark = document.getElementById(`rem-${id}`).value;
-        
-        Toast.fire({ icon: 'info', title: 'Updating status & notifying...', timerProgressBar: false });
-        
+    async function updateReceiver(selectElement, id) {
+        const val = selectElement.value;
+        document.getElementById(`recv-badge-${id}`).innerText = val || 'Unassigned';
+        Toast.fire({ icon: 'info', title: 'Assigning & notifying...' });
         try {
             await fetch(SCRIPT_URL, {
                 method: 'POST', mode: 'no-cors',
-                body: JSON.stringify({
-                    action: 'updateStatus', id: id, status: newStatus, remarks: newRemark,
-                    autoStatusUpdate: true, 
-                    sendCustomNote: false
-                })
+                body: JSON.stringify({ action: 'updateReceiver', id: id, receivedBy: val })
             });
-            Toast.fire({ icon: 'success', title: 'Status updated & Email sent!' });
-            
-            // Subtly refresh data in background to sync quota limits without bothering user
-            fetch(`${SCRIPT_URL}?action=getRequests`).then(r => r.json()).then(d => {
-                 updateQuotaDisplay(d.quota);
-                 allData = d.data;
-            });
+            Toast.fire({ icon: 'success', title: 'Receiver assigned & Email sent!' });
+            fetch(`${SCRIPT_URL}?action=getRequests`).then(r => r.json()).then(d => { updateQuotaDisplay(d.quota); allData = d.data; });
         } catch (e) {
             Toast.fire({ icon: 'error', title: 'Connection error.' });
         }
     }
 
-    // Faster non-blocking save using Toast for the Save / Custom Notes buttons
-    async function updateRow(id, sendCustomNote) {
+    async function handleStatusChange(selectElement, id) {
+        const newStatus = selectElement.value;
+        const newRemark = document.getElementById(`rem-${id}`).value;
+        
+        const badge = document.getElementById('badge-' + id);
+        badge.innerText = newStatus;
+        badge.className = 'status-badge st-' + newStatus.toLowerCase().replace(/\s/g, '');
+
+        if (newStatus === 'Completed') {
+            const tr = document.getElementById(`row-${id}`);
+            tr.classList.add('row-animating');
+            setTimeout(() => { tr.style.display = 'none'; }, 500);
+            Toast.fire({ icon: 'info', title: 'Archiving request...' });
+        } else {
+            Toast.fire({ icon: 'info', title: 'Updating status & notifying...' });
+        }
+        
+        try {
+            await fetch(SCRIPT_URL, {
+                method: 'POST', mode: 'no-cors',
+                body: JSON.stringify({ action: 'updateStatus', id: id, status: newStatus, remarks: newRemark, autoStatusUpdate: true, sendCustomNote: false })
+            });
+            Toast.fire({ icon: 'success', title: newStatus === 'Completed' ? 'Request Completed & Archived!' : 'Status updated & Email sent!' });
+            fetch(`${SCRIPT_URL}?action=getRequests`).then(r => r.json()).then(d => { updateQuotaDisplay(d.quota); allData = d.data; updateStats(allData); });
+        } catch (e) {
+            Toast.fire({ icon: 'error', title: 'Connection error.' });
+        }
+    }
+
+    async function updateRowNote(id, sendCustomNote) {
         const newStatus = document.getElementById(`act-${id}`).value;
         const newRemark = document.getElementById(`rem-${id}`).value;
         
@@ -648,48 +717,61 @@
              return;
         }
 
-        let loadText = sendCustomNote ? 'Sending Custom Note...' : 'Saving...';
-        Toast.fire({ icon: 'info', title: loadText, timerProgressBar: false });
+        Toast.fire({ icon: 'info', title: sendCustomNote ? 'Sending Custom Note...' : 'Saving Note...' });
         
         try {
             await fetch(SCRIPT_URL, {
                 method: 'POST', mode: 'no-cors',
-                body: JSON.stringify({
-                    action: 'updateStatus', id: id, status: newStatus, remarks: newRemark,
-                    autoStatusUpdate: false, 
-                    sendCustomNote: sendCustomNote 
-                })
+                body: JSON.stringify({ action: 'updateStatus', id: id, status: newStatus, remarks: newRemark, autoStatusUpdate: false, sendCustomNote: sendCustomNote })
             });
-            
             Toast.fire({ icon: 'success', title: sendCustomNote ? 'Custom Note Sent!' : 'Saved successfully!' });
-            
-            fetch(`${SCRIPT_URL}?action=getRequests`).then(r => r.json()).then(d => {
-                 updateQuotaDisplay(d.quota);
-                 allData = d.data;
-            });
+            let row = allData.find(r => r.id == id);
+            if(row) row.remarks = newRemark;
         } catch (e) {
-            Toast.fire({ icon: 'error', title: 'Connection error. Please try again.' });
+            Toast.fire({ icon: 'error', title: 'Connection error.' });
+        }
+    }
+
+    async function restoreRequest(id) {
+        const tr = document.getElementById(`row-${id}`);
+        tr.classList.add('row-animating');
+        setTimeout(() => { tr.style.display = 'none'; }, 500);
+        Toast.fire({ icon: 'info', title: 'Restoring request...' });
+        
+        try {
+            await fetch(SCRIPT_URL, {
+                method: 'POST', mode: 'no-cors',
+                body: JSON.stringify({ action: 'restoreRequest', id: id })
+            });
+            Toast.fire({ icon: 'success', title: 'Request Restored to Active panel.' });
+            fetch(`${SCRIPT_URL}?action=getRequests`).then(r => r.json()).then(d => { updateQuotaDisplay(d.quota); allData = d.data; updateStats(allData); });
+        } catch (e) {
+            Toast.fire({ icon: 'error', title: 'Connection error.' });
         }
     }
 
     function applyFilters() {
-        const date = document.getElementById('filterDate').value;
-        const dept = document.getElementById('filterDept').value;
-        const priority = document.getElementById('filterPriority').value;
-        const status = document.getElementById('filterStatusDropdown').value;
+        const date = document.getElementById('filterDate')?.value || "";
+        const dept = document.getElementById('filterDept')?.value || "";
+        const priority = document.getElementById('filterPriority')?.value || "";
+        
+        let status = "";
+        if (currentAdminTab === 'active') {
+            status = document.getElementById('filterStatusDropdown')?.value || "";
+        }
 
         const filtered = allData.filter(item => {
+            if (currentAdminTab === 'active' && item.status === 'Completed') return false;
+            if (currentAdminTab === 'archive' && item.status !== 'Completed') return false;
+
             const matchDate = !date || item.date === date;
-            const matchDept = !dept || item.dept === dept;
+            const matchDept = !dept || (item.dept && item.dept.toLowerCase().includes(dept.toLowerCase()));
             const matchPri = !priority || item.priority === priority;
             
-            // Handle legacy "Pending" converting to "Received"
-            let itemStatus = item.status || 'Received';
-            if (itemStatus === 'Pending') itemStatus = 'Received';
-            if (itemStatus === 'For Releasing' || itemStatus === 'Released') itemStatus = 'For Release';
+            let itemStatus = item.status || 'Pending';
+            if (itemStatus === 'Pending' && item.receivedBy) itemStatus = 'Received';
             
             const matchStatus = !status || itemStatus === status;
-            
             return matchDate && matchDept && matchPri && matchStatus;
         });
 
@@ -697,11 +779,11 @@
     }
 
     function resetFilters() {
-        document.getElementById('filterDate').value = "";
-        document.getElementById('filterDept').value = "";
-        document.getElementById('filterPriority').value = "";
-        document.getElementById('filterStatusDropdown').value = "";
-        renderTable(allData);
+        if(document.getElementById('filterDate')) document.getElementById('filterDate').value = "";
+        if(document.getElementById('filterDept')) document.getElementById('filterDept').value = "";
+        if(document.getElementById('filterPriority')) document.getElementById('filterPriority').value = "";
+        if(document.getElementById('filterStatusDropdown')) document.getElementById('filterStatusDropdown').value = "";
+        applyFilters();
     }
 </script>
 </body>
