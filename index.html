@@ -207,7 +207,10 @@
         <i class="fas fa-list-check"></i> <span>Active Requests</span>
     </div>
     <div class="nav-item" id="tab-archive" onclick="switchAdminTab('archive')">
-        <i class="fas fa-box-archive"></i> <span>Archived (Completed)</span>
+        <i class="fas fa-box-archive"></i> <span>Completed</span>
+    </div>
+    <div class="nav-item" id="tab-disapproved" onclick="switchAdminTab('disapproved')">
+        <i class="fas fa-ban"></i> <span>Disapproved</span>
     </div>
     <div class="nav-item" style="margin-top: auto;" onclick="location.reload()">
         <i class="fas fa-sign-out-alt"></i> <span>Logout</span>
@@ -241,7 +244,7 @@
         </div>
     </div>
 
-    <!-- Hidden while in Archive Tab -->
+    <!-- Hidden while in Archive/Disapproved Tab -->
     <div class="stats-grid" id="statsGrid">
         <div class="stat-card">
             <h4>Total Active</h4>
@@ -273,7 +276,6 @@
                 <option value="Pending">Pending</option>
                 <option value="Partial Release">Partial Release</option>
                 <option value="For Release">For Release</option>
-                <option value="Disapproved">Disapproved</option>
             </select>
         </div>
         <div class="filter-group">
@@ -410,10 +412,15 @@
         currentAdminTab = tab;
         document.getElementById('tab-active').classList.remove('active');
         document.getElementById('tab-archive').classList.remove('active');
+        document.getElementById('tab-disapproved').classList.remove('active');
         document.getElementById('tab-' + tab).classList.add('active');
 
         if(tab === 'archive') {
-            document.getElementById('pageTitle').innerText = 'Archived Requisitions';
+            document.getElementById('pageTitle').innerText = 'Completed Requisitions';
+            document.getElementById('statsGrid').style.display = 'none';
+            document.getElementById('filterStatusGroup').style.display = 'none';
+        } else if (tab === 'disapproved') {
+            document.getElementById('pageTitle').innerText = 'Disapproved Requisitions';
             document.getElementById('statsGrid').style.display = 'none';
             document.getElementById('filterStatusGroup').style.display = 'none';
         } else {
@@ -444,7 +451,8 @@
     }
 
     function updateStats(data) {
-        const active = data.filter(r => r.status !== 'Completed');
+        // Exclude both Completed and Disapproved from the "Active" total counts
+        const active = data.filter(r => r.status !== 'Completed' && r.status !== 'Disapproved');
         document.getElementById('statTotal').innerText = active.length;
         
         document.getElementById('statPending').innerText = active.filter(r => r.status === 'Pending' || r.receivedBy !== '').length;
@@ -467,7 +475,6 @@
 
         let priorityColor = row.priority === 'Urgent' ? '#dc2626' : '#64748b';
         
-        // Ensure accurate time display even if Google Sheets sends historical 1899 date string
         let displayTime = row.time || '';
         if (typeof displayTime === 'string' && displayTime.includes('1899')) {
              try { displayTime = new Date(displayTime).toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'}); } catch(e){}
@@ -492,7 +499,6 @@
         items.forEach((item, idx) => {
             if(item) {
                 const isChecked = checkedArr[idx] === 'true' ? 'checked' : '';
-                // Photo perfectly aligned inside the checklist row!
                 let imgHtml = photosArr[idx] ? `<img src="${photosArr[idx]}" style="width:40px; height:40px; object-fit:cover; border-radius:4px; border:1px solid #cbd5e1; cursor:pointer;" onclick="viewFullImage('${photosArr[idx]}')">` : '';
 
                 html += `
@@ -595,7 +601,7 @@
                             <option value="Sir Eruel" ${row.receivedBy === 'Sir Eruel' ? 'selected' : ''}>Received by Sir Eruel</option>
                         </select>
                         <select class="action-select" id="act-${row.id}" onchange="handleStatusChange(this, ${row.id})">
-                            <option value="Pending" ${status === 'Pending' ? 'selected' : ''}>Pending</option>
+                            <option value="Pending" ${status === 'Pending' ? 'selected' : ''}>Pending (Default)</option>
                             <option value="Partial Release" ${status === 'Partial Release' ? 'selected' : ''}>Partial Release (Pending Items)</option>
                             <option value="For Release" ${status === 'For Release' ? 'selected' : ''}>For Release (Full)</option>
                             <option value="Completed" ${status === 'Completed' ? 'selected' : ''}>Completed</option>
@@ -614,13 +620,22 @@
                         </div>
                     </div>
                 `;
-            } else {
+            } else if (currentAdminTab === 'archive') {
                 actionHtml = `
                     <div style="font-size:12px; color:#2e7d32; margin-bottom:10px; font-weight:bold;">
-                        <i class="fas fa-check-circle"></i> Archived Request
+                        <i class="fas fa-check-circle"></i> Completed Request
                     </div>
                     <button class="save-btn" style="background: #64748b;" onclick="restoreRequest(${row.id})" title="Send back to Active panel">
-                        <i class="fas fa-undo"></i> Restore Mistaken Item
+                        <i class="fas fa-undo"></i> Restore Request
+                    </button>
+                `;
+            } else if (currentAdminTab === 'disapproved') {
+                actionHtml = `
+                    <div style="font-size:12px; color:#c62828; margin-bottom:10px; font-weight:bold;">
+                        <i class="fas fa-ban"></i> Disapproved Request
+                    </div>
+                    <button class="save-btn" style="background: #64748b;" onclick="restoreRequest(${row.id})" title="Send back to Active panel">
+                        <i class="fas fa-undo"></i> Restore Request
                     </button>
                 `;
             }
@@ -687,11 +702,11 @@
         badge.innerText = newStatus;
         badge.className = 'status-badge st-' + newStatus.toLowerCase().replace(/\s/g, '');
 
-        if (newStatus === 'Completed') {
+        if (newStatus === 'Completed' || newStatus === 'Disapproved') {
             const tr = document.getElementById(`row-${id}`);
             tr.classList.add('row-animating');
             setTimeout(() => { tr.style.display = 'none'; }, 500);
-            Toast.fire({ icon: 'info', title: 'Archiving request...' });
+            Toast.fire({ icon: 'info', title: `Moving to ${newStatus}...` });
         } else {
             Toast.fire({ icon: 'info', title: 'Updating status & notifying...' });
         }
@@ -701,7 +716,12 @@
                 method: 'POST', mode: 'no-cors',
                 body: JSON.stringify({ action: 'updateStatus', id: id, status: newStatus, remarks: newRemark, autoStatusUpdate: true, sendCustomNote: false })
             });
-            Toast.fire({ icon: 'success', title: newStatus === 'Completed' ? 'Request Completed & Archived!' : 'Status updated & Email sent!' });
+            
+            let successMsg = 'Status updated & Email sent!';
+            if(newStatus === 'Completed') successMsg = 'Request Completed & Archived!';
+            if(newStatus === 'Disapproved') successMsg = 'Request Disapproved & Archived!';
+            
+            Toast.fire({ icon: 'success', title: successMsg });
             fetch(`${SCRIPT_URL}?action=getRequests`).then(r => r.json()).then(d => { updateQuotaDisplay(d.quota); allData = d.data; updateStats(allData); });
         } catch (e) {
             Toast.fire({ icon: 'error', title: 'Connection error.' });
@@ -761,8 +781,11 @@
         }
 
         const filtered = allData.filter(item => {
-            if (currentAdminTab === 'active' && item.status === 'Completed') return false;
+            // Exclude Completed and Disapproved from the active tab view entirely
+            if (currentAdminTab === 'active' && (item.status === 'Completed' || item.status === 'Disapproved')) return false;
+            
             if (currentAdminTab === 'archive' && item.status !== 'Completed') return false;
+            if (currentAdminTab === 'disapproved' && item.status !== 'Disapproved') return false;
 
             const matchDate = !date || item.date === date;
             const matchDept = !dept || (item.dept && item.dept.toLowerCase().includes(dept.toLowerCase()));
